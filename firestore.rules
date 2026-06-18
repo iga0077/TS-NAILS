@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userEmail() {
+      return request.auth.token.email;
+    }
+
+    // Пользователь есть в коллекции allowedUsers (ID документа = Gmail целиком)
+    function isAllowedUser() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/allowedUsers/$(userEmail()));
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Белый список Gmail — только чтение своей записи, запись только через консоль Firebase
+    match /allowedUsers/{email} {
+      allow read: if isSignedIn() && userEmail() == email;
+      allow write: if false;
+    }
+
+    // У каждого пользователя свои записи и клиенты (по Firebase UID)
+    match /users/{userId}/records/{recordId} {
+      allow read, write: if isOwner(userId) && isAllowedUser();
+    }
+
+    match /users/{userId}/clients/{clientId} {
+      allow read, write: if isOwner(userId) && isAllowedUser();
+    }
+  }
+}
