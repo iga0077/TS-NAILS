@@ -25,11 +25,15 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: |
+            index.html
+            .nojekyll
 
       - name: Deploy to GitHub Pages
         id: deployment
