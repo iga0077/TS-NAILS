@@ -248,7 +248,57 @@
             ),
             Chart: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>,
             LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
-            Google: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>,
+            WhatsApp: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.884 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
+            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+            Undo: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
+            ContactImport: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>,
+            Note: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        };
+
+        const openWhatsApp = (phone) => {
+            const digits = (phone || '').replace(/\D/g, '');
+            if (!digits) return;
+            window.open(`https://wa.me/${digits}`, '_blank', 'noopener');
+        };
+
+        const isNote = (record) => record.type === 'note';
+
+        const SERVICE_PRESETS = [
+            { name: 'Коррекция(короткие)', price: 6000 },
+            { name: 'Коррекция(длинные)', price: 7000 },
+            { name: 'Снятие', price: 2000 },
+            { name: 'Наращивание 8', price: 8000 },
+            { name: 'Наращивание 9', price: 9000 },
+            { name: 'Наращивание 10', price: 10000 },
+            { name: 'Стразы', price: 1000 },
+            { name: 'Ремонт', price: 1000 },
+        ];
+
+        const PRESET_NAMES = SERVICE_PRESETS.map(p => p.name);
+
+        const parseService = (service) => {
+            const parts = (service || '').split(' + ').map(s => s.trim()).filter(Boolean);
+            const presets = [];
+            const custom = [];
+            parts.forEach(p => {
+                if (PRESET_NAMES.includes(p)) presets.push(p);
+                else custom.push(p);
+            });
+            return { presets, custom: custom.join(' + ') };
+        };
+
+        const buildService = (presets, custom) => {
+            const orderedPresets = PRESET_NAMES.filter(p => presets.includes(p));
+            const parts = [...orderedPresets];
+            if (custom && custom.trim()) parts.push(custom.trim());
+            return parts.join(' + ');
+        };
+
+        const calcPriceFromPresets = (presetNames) => {
+            return SERVICE_PRESETS
+                .filter(p => presetNames.includes(p.name))
+                .reduce((sum, p) => sum + p.price, 0);
         };
 
         const userRecordsRef = (uid) => db.collection('users').doc(uid).collection('records');
@@ -299,26 +349,6 @@
                 </div>
             </div>
         );
-
-        const SERVICE_PRESETS = ['Маникюр', 'Гель-лак', 'Снятие', 'Наращивание', 'Починка', 'Дизайн'];
-
-        const parseService = (service) => {
-            const parts = (service || '').split(' + ').map(s => s.trim()).filter(Boolean);
-            const presets = [];
-            const custom = [];
-            parts.forEach(p => {
-                if (SERVICE_PRESETS.includes(p)) presets.push(p);
-                else custom.push(p);
-            });
-            return { presets, custom: custom.join(' + ') };
-        };
-
-        const buildService = (presets, custom) => {
-            const orderedPresets = SERVICE_PRESETS.filter(p => presets.includes(p));
-            const parts = [...orderedPresets];
-            if (custom && custom.trim()) parts.push(custom.trim());
-            return parts.join(' + ');
-        };
 
         const formatMonthYear = (yearMonth) => {
             const [year, month] = yearMonth.split('-');
@@ -372,47 +402,75 @@
             </button>
         );
 
-        const AppointmentCard = ({ record, onEdit, onDelete }) => {
+        const RecordCard = ({ record, isArchiveView, onEdit, onDelete, onArchive, onRestore }) => {
             const [showActions, setShowActions] = useState(false);
+            const note = isNote(record);
 
             return (
                 <div 
                     className="glass-panel rounded-2xl p-4 mb-4 relative overflow-hidden transition-all cursor-pointer select-none" 
                     onClick={() => setShowActions(!showActions)}
                 >
-                    {/* Акцентная полоса */}
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-nude to-bronze dark:from-gold dark:to-golddark opacity-90"></div>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 opacity-90 ${note ? 'bg-gradient-to-b from-violet-300 to-violet-500 dark:from-violet-400 dark:to-violet-600' : 'bg-gradient-to-b from-nude to-bronze dark:from-gold dark:to-golddark'}`}></div>
                     
-                    <div className="flex justify-between items-start ml-2">
-                        <div>
-                            <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100">{record.clientName}</h3>
-                            {record.phone && (
-                                <div className="flex items-center text-stone-500 dark:text-stone-400 text-sm mt-1">
-                                    <span className="text-bronze dark:text-gold mr-1.5"><Icons.Phone /></span>
-                                    {record.phone}
+                    {note ? (
+                        <div className="ml-2">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2 text-violet-600 dark:text-violet-300 text-sm font-medium">
+                                    <Icons.Note /> Заметка
                                 </div>
-                            )}
-                        </div>
-                        <div className="text-right">
-                            <div className="inline-block bg-white/80 dark:bg-stonepanel backdrop-blur-sm rounded-lg px-3 py-1 font-semibold text-bronze dark:text-gold shadow-sm border border-nude/60 dark:border-gold/20">
-                                {record.time}
+                                <div className="inline-block bg-white/80 dark:bg-stonepanel backdrop-blur-sm rounded-lg px-3 py-1 font-semibold text-violet-600 dark:text-violet-300 shadow-sm border border-violet-200/60 dark:border-violet-500/20">
+                                    {record.time}
+                                </div>
                             </div>
+                            <p className="mt-3 text-stone-700 dark:text-stone-200 text-sm whitespace-pre-wrap">{record.noteText}</p>
                         </div>
-                    </div>
-                    
-                    <div className="mt-4 ml-2 pt-3 border-t border-stone-200/60 dark:border-stone-700/50 flex justify-between items-center">
-                        <div className="flex items-center text-stone-600 dark:text-stone-300 font-medium text-sm">
-                            <span className="text-bronze dark:text-gold mr-2"><Icons.Sparkles /></span>
-                            {record.service}
-                        </div>
-                        <div className="font-bold text-stone-800 dark:text-stone-100">
-                            {record.price ? `${record.price} ₸` : ''}
-                        </div>
-                    </div>
+                    ) : (
+                        <>
+                            <div className="flex justify-between items-start ml-2">
+                                <div className="flex-1 min-w-0 pr-2">
+                                    <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100">{record.clientName}</h3>
+                                    {record.phone && (
+                                        <div className="flex items-center text-stone-500 dark:text-stone-400 text-sm mt-1">
+                                            <span className="text-bronze dark:text-gold mr-1.5"><Icons.Phone /></span>
+                                            {record.phone}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="text-right shrink-0">
+                                    <div className="inline-block bg-white/80 dark:bg-stonepanel backdrop-blur-sm rounded-lg px-3 py-1 font-semibold text-bronze dark:text-gold shadow-sm border border-nude/60 dark:border-gold/20">
+                                        {record.time}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-4 ml-2 pt-3 border-t border-stone-200/60 dark:border-stone-700/50 flex justify-between items-center">
+                                <div className="flex items-center text-stone-600 dark:text-stone-300 font-medium text-sm min-w-0">
+                                    <span className="text-bronze dark:text-gold mr-2 shrink-0"><Icons.Sparkles /></span>
+                                    <span className="truncate">{record.service}</span>
+                                </div>
+                                <div className="font-bold text-stone-800 dark:text-stone-100 shrink-0 ml-2">
+                                    {record.price ? `${record.price} ₸` : ''}
+                                </div>
+                            </div>
+                        </>
+                    )}
 
-                    {/* Оверлей с кнопками (непрозрачный фон перекрывает время) */}
                     {showActions && (
-                        <div className="absolute inset-y-0 right-0 flex items-center space-x-3 bg-white/98 dark:bg-stonebg/98 backdrop-blur-md px-5 pl-6 rounded-r-2xl border-l border-nude/40 dark:border-gold/20 shadow-[-15px_0_20px_rgba(255,255,255,0.9)] dark:shadow-[-15px_0_20px_rgba(10,10,10,0.9)] z-10" onClick={(e) => e.stopPropagation()}>
+                        <div className="absolute inset-y-0 right-0 flex items-center space-x-2 bg-white/98 dark:bg-stonebg/98 backdrop-blur-md px-4 pl-5 rounded-r-2xl border-l border-nude/40 dark:border-gold/20 shadow-[-15px_0_20px_rgba(255,255,255,0.9)] dark:shadow-[-15px_0_20px_rgba(10,10,10,0.9)] z-10" onClick={(e) => e.stopPropagation()}>
+                            {!note && record.phone && (
+                                <button onClick={(e) => { e.stopPropagation(); openWhatsApp(record.phone); setShowActions(false); }} className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 transition-colors shadow-sm border border-green-100 dark:border-green-900/30" title="WhatsApp">
+                                    <Icons.WhatsApp />
+                                </button>
+                            )}
+                            {isArchiveView ? (
+                                <button onClick={(e) => { e.stopPropagation(); onRestore(record.id); setShowActions(false); }} className="p-3 bg-nude/30 dark:bg-gold/10 rounded-full hover:bg-nude/50 dark:hover:bg-gold/20 text-bronze dark:text-gold transition-colors shadow-sm border border-nude/60 dark:border-gold/20" title="Вернуть из архива">
+                                    <Icons.Undo />
+                                </button>
+                            ) : (
+                                <button onClick={(e) => { e.stopPropagation(); onArchive(record.id); setShowActions(false); }} className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 transition-colors shadow-sm border border-emerald-100 dark:border-emerald-900/30" title="В архив">
+                                    <Icons.Check />
+                                </button>
+                            )}
                             <button onClick={(e) => { e.stopPropagation(); onEdit(record); setShowActions(false); }} className="p-3 bg-stone-100 dark:bg-stonepanel rounded-full hover:bg-stone-200 dark:hover:bg-white/10 text-stone-600 dark:text-stone-200 transition-colors shadow-sm border border-stone-200 dark:border-white/5" title="Редактировать">
                                 <Icons.Edit />
                             </button>
@@ -425,7 +483,7 @@
             );
         };
 
-        const EditClientModal = ({ client, isOpen, onClose, onSave }) => {
+        const EditClientModal = ({ client, isOpen, onClose, onSave, onDelete }) => {
             const [formData, setFormData] = useState({ id: '', name: '', phone: '', isInactive: false });
 
             useEffect(() => {
@@ -434,13 +492,14 @@
                 }
             }, [isOpen, client]);
 
-            if (!isOpen) return null;
+            if (!isOpen || !client) return null;
+            const isNew = !client.id;
 
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-black/70 backdrop-blur-sm transition-opacity">
                     <div className="glass-panel w-full max-w-md rounded-3xl shadow-2xl modal-enter overflow-hidden relative">
                         <div className="flex justify-between items-center p-5 border-b border-nude/50 dark:border-gold/20 bg-white/50 dark:bg-stonepanel/50">
-                            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">Профиль клиента</h2>
+                            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">{isNew ? 'Новый клиент' : 'Профиль клиента'}</h2>
                             <button onClick={onClose} className="p-2 bg-white/60 dark:bg-white/5 rounded-full hover:bg-white/90 dark:hover:bg-white/10 transition-colors text-stone-600 dark:text-stone-300">
                                 <Icons.Close />
                             </button>
@@ -454,13 +513,24 @@
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Телефон</label>
                                 <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="glass-input w-full px-4 py-3 rounded-xl" />
                             </div>
-                            <div className="flex items-center mt-4 bg-white/50 dark:bg-stonepanel p-3 rounded-xl border border-nude/50 dark:border-gold/10">
-                                <input type="checkbox" id="inactive" checked={formData.isInactive} onChange={e => setFormData({...formData, isInactive: e.target.checked})} className="mr-3 w-5 h-5 rounded border-stone-300 dark:border-stone-600 bg-white dark:bg-stonebg accent-bronze dark:accent-gold" />
-                                <label htmlFor="inactive" className="text-stone-700 dark:text-stone-300 text-sm">Неактуальный клиент (в архив)</label>
-                            </div>
+                            {!isNew && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => { if (window.confirm('Удалить клиента навсегда?')) onDelete(formData.id); }}
+                                        className="w-full py-3 px-4 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                    >
+                                        Удалить клиента
+                                    </button>
+                                    <div className="flex items-center bg-white/50 dark:bg-stonepanel p-3 rounded-xl border border-nude/50 dark:border-gold/10">
+                                        <input type="checkbox" id="inactive" checked={formData.isInactive} onChange={e => setFormData({...formData, isInactive: e.target.checked})} className="mr-3 w-5 h-5 rounded border-stone-300 dark:border-stone-600 bg-white dark:bg-stonebg accent-bronze dark:accent-gold" />
+                                        <label htmlFor="inactive" className="text-stone-700 dark:text-stone-300 text-sm">Неактуальный клиент (в архив)</label>
+                                    </div>
+                                </>
+                            )}
                             <div className="pt-4">
                                 <button type="submit" className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-bronze/20 dark:shadow-gold/10 transform transition active:scale-95">
-                                    Сохранить изменения
+                                    {isNew ? 'Добавить клиента' : 'Сохранить изменения'}
                                 </button>
                             </div>
                         </form>
@@ -470,23 +540,30 @@
         };
 
         const AddModal = ({ initialData, clients, isOpen, onClose, onSave }) => {
+            const [entryType, setEntryType] = useState('appointment');
             const [formData, setFormData] = useState({
-                clientName: '', phone: '', date: todayString, time: '10:00', service: 'Маникюр + Гель-лак', price: ''
+                type: 'appointment', clientName: '', phone: '', date: todayString, time: '10:00', service: '', price: '', noteText: '', archived: false
             });
-            const [selectedPresets, setSelectedPresets] = useState(['Маникюр', 'Гель-лак']);
+            const [selectedPresets, setSelectedPresets] = useState([]);
             const [customService, setCustomService] = useState('');
             const [showSuggestions, setShowSuggestions] = useState(false);
 
             useEffect(() => {
                 if (isOpen) {
                     if (initialData) {
-                        setFormData(initialData);
-                        const parsed = parseService(initialData.service);
-                        setSelectedPresets(parsed.presets);
-                        setCustomService(parsed.custom);
+                        setFormData({ type: 'appointment', archived: false, ...initialData });
+                        if (isNote(initialData)) {
+                            setEntryType('note');
+                        } else {
+                            setEntryType('appointment');
+                            const parsed = parseService(initialData.service);
+                            setSelectedPresets(parsed.presets);
+                            setCustomService(parsed.custom);
+                        }
                     } else {
-                        setFormData({ clientName: '', phone: '', date: todayString, time: '10:00', service: 'Маникюр + Гель-лак', price: '' });
-                        setSelectedPresets(['Маникюр', 'Гель-лак']);
+                        setEntryType('appointment');
+                        setFormData({ type: 'appointment', clientName: '', phone: '', date: todayString, time: '10:00', service: '', price: '', noteText: '', archived: false });
+                        setSelectedPresets([]);
                         setCustomService('');
                     }
                     setShowSuggestions(false);
@@ -495,30 +572,32 @@
 
             const updateService = (presets, custom) => {
                 const service = buildService(presets, custom);
+                const price = calcPriceFromPresets(presets);
                 setSelectedPresets(presets);
                 setCustomService(custom);
-                setFormData(prev => ({ ...prev, service }));
+                setFormData(prev => ({ ...prev, service, price: price ? String(price) : prev.price }));
             };
 
-            const togglePreset = (preset) => {
-                const next = selectedPresets.includes(preset)
-                    ? selectedPresets.filter(p => p !== preset)
-                    : [...selectedPresets, preset];
+            const togglePreset = (presetName) => {
+                const next = selectedPresets.includes(presetName)
+                    ? selectedPresets.filter(p => p !== presetName)
+                    : [...selectedPresets, presetName];
                 updateService(next, customService);
             };
 
             const handleServiceInput = (value) => {
                 const parsed = parseService(value);
+                const price = calcPriceFromPresets(parsed.presets);
                 setSelectedPresets(parsed.presets);
                 setCustomService(parsed.custom);
-                setFormData(prev => ({ ...prev, service: value }));
+                setFormData(prev => ({ ...prev, service: value, price: price ? String(price) : prev.price }));
             };
 
             if (!isOpen) return null;
 
             const filteredClients = clients.filter(c => 
                 !c.isInactive && 
-                c.name.toLowerCase().includes(formData.clientName.toLowerCase())
+                c.name.toLowerCase().includes((formData.clientName || '').toLowerCase())
             );
 
             const handleChange = (e) => {
@@ -526,17 +605,61 @@
                 setFormData(prev => ({ ...prev, [name]: value }));
             };
 
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (entryType === 'note') {
+                    onSave({ ...formData, type: 'note', archived: formData.archived || false });
+                } else {
+                    onSave({ ...formData, type: 'appointment', archived: formData.archived || false });
+                }
+            };
+
+            const isEditing = !!initialData;
+            const title = isEditing
+                ? (entryType === 'note' ? 'Редактировать заметку' : 'Редактировать запись')
+                : (entryType === 'note' ? 'Новая заметка' : 'Новая запись');
+
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-black/70 backdrop-blur-sm transition-opacity">
-                    <div className="glass-panel w-full max-w-md rounded-3xl shadow-2xl modal-enter overflow-hidden relative">
-                        <div className="flex justify-between items-center p-5 border-b border-nude/50 dark:border-gold/20 bg-white/50 dark:bg-stonepanel/50">
-                            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">{initialData ? 'Редактировать запись' : 'Новая запись'}</h2>
+                    <div className="glass-panel w-full max-w-md rounded-3xl shadow-2xl modal-enter overflow-hidden relative max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-5 border-b border-nude/50 dark:border-gold/20 bg-white/50 dark:bg-stonepanel/50 shrink-0">
+                            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">{title}</h2>
                             <button onClick={onClose} className="p-2 bg-white/60 dark:bg-white/5 rounded-full hover:bg-white/90 dark:hover:bg-white/10 transition-colors text-stone-600 dark:text-stone-300">
                                 <Icons.Close />
                             </button>
                         </div>
 
-                        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="p-5 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
+                            {!isEditing && (
+                                <div className="flex bg-nude/20 dark:bg-stonepanel p-1 rounded-xl border border-nude/40 dark:border-gold/10">
+                                    <button type="button" onClick={() => setEntryType('appointment')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${entryType === 'appointment' ? 'bg-white shadow-sm text-bronze dark:bg-gold/10 dark:text-gold dark:shadow-none dark:border dark:border-gold/20' : 'text-stone-500 dark:text-stone-400'}`}>
+                                        Запись клиента
+                                    </button>
+                                    <button type="button" onClick={() => setEntryType('note')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${entryType === 'note' ? 'bg-white shadow-sm text-violet-600 dark:bg-violet-900/30 dark:text-violet-300 dark:shadow-none dark:border dark:border-violet-500/20' : 'text-stone-500 dark:text-stone-400'}`}>
+                                        Заметка
+                                    </button>
+                                </div>
+                            )}
+
+                            {entryType === 'note' ? (
+                                <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Дата *</label>
+                                            <input required type="date" name="date" value={formData.date} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl dark:[&::-webkit-calendar-picker-indicator]:invert" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Время *</label>
+                                            <input required type="time" name="time" value={formData.time} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl dark:[&::-webkit-calendar-picker-indicator]:invert" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Текст заметки *</label>
+                                        <textarea required name="noteText" value={formData.noteText || ''} onChange={handleChange} rows={4} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500 resize-none" placeholder="Напоминание..." />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
                             <div className="relative">
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Имя клиента *</label>
                                 <input 
@@ -579,20 +702,20 @@
 
                             <div>
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Услуга</label>
-                                <input type="text" name="service" value={formData.service} onChange={(e) => handleServiceInput(e.target.value)} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="Маникюр, Наращивание..." />
+                                <input type="text" name="service" value={formData.service || ''} onChange={(e) => handleServiceInput(e.target.value)} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="Услуги..." />
                                 <div className="flex flex-wrap gap-2 mt-2.5">
                                     {SERVICE_PRESETS.map(preset => (
                                         <button
-                                            key={preset}
+                                            key={preset.name}
                                             type="button"
-                                            onClick={() => togglePreset(preset)}
-                                            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                                                selectedPresets.includes(preset)
+                                            onClick={() => togglePreset(preset.name)}
+                                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                                                selectedPresets.includes(preset.name)
                                                     ? 'bg-bronze text-white border-bronze dark:bg-gold/20 dark:text-gold dark:border-gold/40'
                                                     : 'bg-white/70 text-stone-600 border-nude/60 hover:border-bronze/40 dark:bg-stonepanel dark:text-stone-300 dark:border-gold/10 dark:hover:border-gold/30'
                                             }`}
                                         >
-                                            {preset}
+                                            {preset.name}
                                         </button>
                                     ))}
                                 </div>
@@ -601,20 +724,114 @@
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Стоимость (₸)</label>
-                                    <input type="number" name="price" value={formData.price} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="5000" />
+                                    <input type="text" name="price" value={formData.price || ''} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="6000" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Телефон</label>
-                                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="+7..." />
+                                    <input type="tel" name="phone" value={formData.phone || ''} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="+7..." />
                                 </div>
                             </div>
+                                </>
+                            )}
 
                             <div className="pt-4">
                                 <button type="submit" className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-bronze/20 dark:shadow-gold/10 transform transition active:scale-95">
-                                    {initialData ? 'Сохранить изменения' : 'Добавить запись'}
+                                    {isEditing ? 'Сохранить изменения' : (entryType === 'note' ? 'Добавить заметку' : 'Добавить запись')}
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            );
+        };
+
+        const ContactImportModal = ({ isOpen, onClose, onImport, existingClients }) => {
+            const [contacts, setContacts] = useState([]);
+            const [selected, setSelected] = useState({});
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            useEffect(() => {
+                if (!isOpen) {
+                    setContacts([]);
+                    setSelected({});
+                    setError('');
+                    return;
+                }
+                pickContacts();
+            }, [isOpen]);
+
+            const pickContacts = async () => {
+                setLoading(true);
+                setError('');
+                try {
+                    if (!('contacts' in navigator && 'ContactsManager' in window)) {
+                        setError('Импорт контактов доступен в Chrome на Android. На iPhone добавьте клиентов вручную.');
+                        setLoading(false);
+                        return;
+                    }
+                    const picked = await navigator.contacts.select(['name', 'tel'], { multiple: true });
+                    const normalized = picked.map((c, i) => ({
+                        id: `c-${i}`,
+                        name: (c.name && c.name[0]) || 'Без имени',
+                        phone: (c.tel && c.tel[0]) || ''
+                    })).filter(c => c.name);
+                    const existingPhones = new Set(existingClients.map(c => (c.phone || '').replace(/\D/g, '')).filter(Boolean));
+                    const existingNames = new Set(existingClients.map(c => c.name.toLowerCase()));
+                    const fresh = normalized.filter(c => {
+                        const phoneKey = c.phone.replace(/\D/g, '');
+                        if (phoneKey && existingPhones.has(phoneKey)) return false;
+                        if (existingNames.has(c.name.toLowerCase())) return false;
+                        return true;
+                    });
+                    setContacts(fresh);
+                    const sel = {};
+                    fresh.forEach(c => { sel[c.id] = true; });
+                    setSelected(sel);
+                    if (!fresh.length) setError('Новых контактов для импорта не найдено.');
+                } catch (e) {
+                    if (e.name !== 'InvalidStateError') setError('Не удалось получить контакты.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            if (!isOpen) return null;
+
+            const toggle = (id) => setSelected(prev => ({ ...prev, [id]: !prev[id] }));
+            const selectedCount = contacts.filter(c => selected[c.id]).length;
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-black/70 backdrop-blur-sm">
+                    <div className="glass-panel w-full max-w-md rounded-3xl shadow-2xl modal-enter overflow-hidden max-h-[85vh] flex flex-col">
+                        <div className="flex justify-between items-center p-5 border-b border-nude/50 dark:border-gold/20 shrink-0">
+                            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">Импорт контактов</h2>
+                            <button onClick={onClose} className="p-2 rounded-full hover:bg-white/60 dark:hover:bg-white/10"><Icons.Close /></button>
+                        </div>
+                        <div className="p-5 overflow-y-auto flex-1 space-y-3">
+                            {loading && <p className="text-sm text-stone-500 text-center">Загрузка...</p>}
+                            {error && <p className="text-sm text-stone-500 dark:text-stone-400 text-center">{error}</p>}
+                            {contacts.map(c => (
+                                <label key={c.id} className="flex items-center gap-3 p-3 rounded-xl border border-nude/40 dark:border-gold/10 cursor-pointer hover:bg-white/50 dark:hover:bg-white/5">
+                                    <input type="checkbox" checked={!!selected[c.id]} onChange={() => toggle(c.id)} className="w-5 h-5 accent-bronze dark:accent-gold" />
+                                    <div className="min-w-0">
+                                        <div className="font-medium text-stone-800 dark:text-stone-100">{c.name}</div>
+                                        {c.phone && <div className="text-sm text-stone-500">{c.phone}</div>}
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                        {contacts.length > 0 && (
+                            <div className="p-5 border-t border-nude/40 dark:border-gold/10 shrink-0">
+                                <button
+                                    onClick={() => onImport(contacts.filter(c => selected[c.id]))}
+                                    disabled={!selectedCount}
+                                    className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-3 rounded-xl disabled:opacity-50"
+                                >
+                                    Импортировать ({selectedCount})
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -627,6 +844,7 @@
                 const byMonth = {};
                 const byYear = {};
                 records.forEach(r => {
+                    if (isNote(r)) return;
                     const price = Number(r.price);
                     if (!price || price <= 0 || !r.date) return;
                     const monthKey = r.date.substring(0, 7);
@@ -729,6 +947,7 @@
             const [isClientModalOpen, setIsClientModalOpen] = useState(false);
             const [editingClient, setEditingClient] = useState(null);
             const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
+            const [isContactImportOpen, setIsContactImportOpen] = useState(false);
 
             // Тема: auto — по времени суток, light/dark — вручную
             const [themeMode, setThemeMode] = useState(() => {
@@ -849,21 +1068,33 @@
 
                 await userRecordsRef(user.uid).doc(String(id)).set(data);
 
-                const existingClient = clients.find(c => c.name.toLowerCase() === recordData.clientName.toLowerCase());
-                if (!existingClient) {
-                    const clientId = Date.now() + 1;
-                    await userClientsRef(user.uid).doc(String(clientId)).set({
-                        id: clientId,
-                        name: recordData.clientName,
-                        phone: recordData.phone || '',
-                        isInactive: false
-                    });
-                } else if (recordData.phone && !existingClient.phone) {
-                    await userClientsRef(user.uid).doc(String(existingClient.id)).update({ phone: recordData.phone });
+                if (!isNote(data) && data.clientName) {
+                    const existingClient = clients.find(c => c.name.toLowerCase() === recordData.clientName.toLowerCase());
+                    if (!existingClient) {
+                        const clientId = Date.now() + 1;
+                        await userClientsRef(user.uid).doc(String(clientId)).set({
+                            id: clientId,
+                            name: recordData.clientName,
+                            phone: recordData.phone || '',
+                            isInactive: false
+                        });
+                    } else if (recordData.phone && !existingClient.phone) {
+                        await userClientsRef(user.uid).doc(String(existingClient.id)).update({ phone: recordData.phone });
+                    }
                 }
 
                 setEditingRecord(null);
                 setIsModalOpen(false);
+            };
+
+            const handleArchiveRecord = async (id) => {
+                if (!user) return;
+                await userRecordsRef(user.uid).doc(String(id)).update({ archived: true });
+            };
+
+            const handleRestoreRecord = async (id) => {
+                if (!user) return;
+                await userRecordsRef(user.uid).doc(String(id)).update({ archived: false });
             };
 
             const handleDeleteRecord = async (id) => {
@@ -875,25 +1106,60 @@
 
             const handleSaveClient = async (updatedClient) => {
                 if (!user) return;
-                const oldClient = clients.find(c => c.id === updatedClient.id);
-                const oldName = oldClient ? oldClient.name : undefined;
+                const isNew = !updatedClient.id;
+                const clientId = isNew ? Date.now() : updatedClient.id;
+                const data = { ...updatedClient, id: clientId };
 
-                await userClientsRef(user.uid).doc(String(updatedClient.id)).set(updatedClient);
+                await userClientsRef(user.uid).doc(String(clientId)).set(data);
 
-                if (oldName && (oldName !== updatedClient.name || (oldClient ? oldClient.phone : undefined) !== updatedClient.phone)) {
-                    const related = records.filter(r => r.clientName === oldName);
-                    const batch = db.batch();
-                    related.forEach(r => {
-                        batch.update(userRecordsRef(user.uid).doc(String(r.id)), {
-                            clientName: updatedClient.name,
-                            phone: updatedClient.phone
+                if (!isNew) {
+                    const oldClient = clients.find(c => c.id === updatedClient.id);
+                    const oldName = oldClient ? oldClient.name : undefined;
+                    if (oldName && (oldName !== updatedClient.name || (oldClient ? oldClient.phone : undefined) !== updatedClient.phone)) {
+                        const related = records.filter(r => !isNote(r) && r.clientName === oldName);
+                        const batch = db.batch();
+                        related.forEach(r => {
+                            batch.update(userRecordsRef(user.uid).doc(String(r.id)), {
+                                clientName: updatedClient.name,
+                                phone: updatedClient.phone
+                            });
                         });
-                    });
-                    if (related.length) await batch.commit();
+                        if (related.length) await batch.commit();
+                    }
                 }
 
                 setIsClientModalOpen(false);
                 setEditingClient(null);
+            };
+
+            const handleDeleteClient = async (clientId) => {
+                if (!user) return;
+                await userClientsRef(user.uid).doc(String(clientId)).delete();
+                setIsClientModalOpen(false);
+                setEditingClient(null);
+            };
+
+            const handleImportContacts = async (importList) => {
+                if (!user || !importList.length) return;
+                const batch = db.batch();
+                importList.forEach((c, i) => {
+                    const id = Date.now() + i;
+                    batch.set(userClientsRef(user.uid).doc(String(id)), {
+                        id, name: c.name, phone: c.phone || '', isInactive: false
+                    });
+                });
+                await batch.commit();
+                setIsContactImportOpen(false);
+            };
+
+            const handleFabClick = () => {
+                if (activeTab === 'clients') {
+                    setEditingClient({ id: null, name: '', phone: '', isInactive: false });
+                    setIsClientModalOpen(true);
+                } else {
+                    setEditingRecord(null);
+                    setIsModalOpen(true);
+                }
             };
 
             // Обработка расписания
@@ -904,16 +1170,18 @@
                     filtered = filtered.filter(r => r.date === selectedDate);
                 } else {
                     if (scheduleMode === 'upcoming') {
-                        filtered = filtered.filter(r => r.date >= todayString);
+                        filtered = filtered.filter(r => !r.archived && r.date >= todayString);
                     } else {
-                        filtered = filtered.filter(r => r.date < todayString);
+                        filtered = filtered.filter(r => r.archived || r.date < todayString);
                     }
                 }
 
                 if (scheduleSearch) {
+                    const q = scheduleSearch.toLowerCase();
                     filtered = filtered.filter(r => 
-                        r.clientName.toLowerCase().includes(scheduleSearch.toLowerCase()) ||
-                        (r.service && r.service.toLowerCase().includes(scheduleSearch.toLowerCase()))
+                        (r.clientName && r.clientName.toLowerCase().includes(q)) ||
+                        (r.service && r.service.toLowerCase().includes(q)) ||
+                        (r.noteText && r.noteText.toLowerCase().includes(q))
                     );
                 }
                 
@@ -942,6 +1210,7 @@
                 });
 
                 records.forEach(r => {
+                    if (isNote(r)) return;
                     const client = clients.find(c => c.name === r.clientName);
                     if (client && statsMap[client.id]) {
                         statsMap[client.id].visits += 1;
@@ -1091,7 +1360,14 @@
                     {/* Поиск клиентов */}
                     {activeTab === 'clients' && (
                         <div className="mb-6 px-2 space-y-3">
-                            <div className="flex justify-end">
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    onClick={() => setIsContactImportOpen(true)}
+                                    className="h-[42px] w-[42px] rounded-xl border flex items-center justify-center transition-all shadow-sm bg-white/70 border-nude/60 text-bronze hover:text-bronzedark dark:bg-stonepanel dark:border-gold/10 dark:text-gold dark:hover:text-white"
+                                    title="Импорт из контактов"
+                                >
+                                    <Icons.ContactImport />
+                                </button>
                                 <ThemeToggleButton
                                     themeMode={themeMode}
                                     effectiveTheme={effectiveTheme}
@@ -1139,11 +1415,14 @@
                                             </div>
                                             <div>
                                                 {groupedRecords[date].map(record => (
-                                                    <AppointmentCard 
+                                                    <RecordCard 
                                                         key={record.id} 
-                                                        record={record} 
+                                                        record={record}
+                                                        isArchiveView={scheduleMode === 'archive'}
                                                         onEdit={() => { setEditingRecord(record); setIsModalOpen(true); }} 
-                                                        onDelete={handleDeleteRecord} 
+                                                        onDelete={handleDeleteRecord}
+                                                        onArchive={handleArchiveRecord}
+                                                        onRestore={handleRestoreRecord}
                                                     />
                                                 ))}
                                             </div>
@@ -1156,7 +1435,7 @@
                         {activeTab === 'clients' && (
                             <div className="space-y-3 fade-in px-2">
                                 <div className="flex justify-between items-center mb-4 ml-1">
-                                    <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">База</h2>
+                                    <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">Клиенты</h2>
                                     <span className="text-sm font-medium text-stone-600 dark:text-stone-400 bg-white/60 dark:bg-stonepanel px-3 py-1 rounded-full border border-nude/50 dark:border-gold/10">{clientsWithStats.length} чел.</span>
                                 </div>
                                 
@@ -1180,9 +1459,16 @@
                                                 ) : null}
                                                 <div className="text-xs text-stone-400 dark:text-stone-500">Визиты: {client.visits}</div>
                                             </div>
+                                        <div className="flex items-center space-x-2">
+                                            {client.phone && (
+                                                <button onClick={() => openWhatsApp(client.phone)} className="p-2 bg-green-50 dark:bg-green-900/20 rounded-full hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 transition-colors border border-green-100 dark:border-green-900/30" title="WhatsApp">
+                                                    <Icons.WhatsApp />
+                                                </button>
+                                            )}
                                             <button onClick={() => { setEditingClient(client); setIsClientModalOpen(true); }} className="p-2 bg-white/60 dark:bg-white/5 rounded-full hover:bg-white/90 dark:hover:bg-white/10 text-stone-500 dark:text-stone-300 transition-colors border border-nude/30 dark:border-transparent">
                                                 <Icons.Edit />
                                             </button>
+                                        </div>
                                         </div>
                                     </div>
                                 ))}
@@ -1207,6 +1493,14 @@
                         client={editingClient}
                         onClose={() => { setIsClientModalOpen(false); setEditingClient(null); }}
                         onSave={handleSaveClient}
+                        onDelete={handleDeleteClient}
+                    />
+
+                    <ContactImportModal
+                        isOpen={isContactImportOpen}
+                        onClose={() => setIsContactImportOpen(false)}
+                        onImport={handleImportContacts}
+                        existingClients={clients}
                     />
 
                     <IncomeModal
@@ -1229,7 +1523,7 @@
 
                             <div className="absolute left-1/2 -translate-x-1/2 -top-10">
                                 <button 
-                                    onClick={() => { setEditingRecord(null); setIsModalOpen(true); }}
+                                    onClick={handleFabClick}
                                     className="w-[68px] h-[68px] rounded-full bg-bronze dark:bg-gradient-to-tr dark:from-gold dark:to-golddark text-white dark:text-stone-900 flex items-center justify-center shadow-[0_8px_25px_rgba(127,96,62,0.4)] dark:shadow-[0_8px_25px_rgba(212,175,55,0.2)] transform transition hover:scale-105 active:scale-95 border-[6px] border-[#fdfbf9] dark:border-[#050505]"
                                 >
                                     <Icons.Plus />
@@ -1241,7 +1535,7 @@
                                 className={`flex flex-col items-center p-2 px-8 rounded-2xl transition-all duration-300 ${activeTab === 'clients' ? 'text-bronzedark bg-nude/40 shadow-sm border border-nude/60 dark:text-gold dark:bg-gold/10 dark:border-gold/20' : 'text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300'}`}
                             >
                                 <Icons.Users />
-                                <span className="text-[11px] font-bold mt-1.5">База</span>
+                                <span className="text-[11px] font-bold mt-1.5">Клиенты</span>
                             </button>
                             
                         </div>
