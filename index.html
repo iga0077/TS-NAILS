@@ -302,13 +302,85 @@
                 .reduce((sum, p) => sum + p.price, 0);
         };
 
-        const userRecordsRef = (uid) => db.collection('users').doc(uid).collection('records');
-        const userClientsRef = (uid) => db.collection('users').doc(uid).collection('clients');
+        const recordsRef = () => db.collection('records');
+        const clientsRef = () => db.collection('clients');
+        const userProfileRef = (uid) => db.collection('userProfiles').doc(uid);
+        const bookingWindowRef = () => db.collection('settings').doc('bookingWindow');
+        const bookedSlotsRef = () => db.collection('bookedSlots');
+        const phoneLookupRef = (phone) => {
+            const digits = normalizePhone(phone).replace(/\D/g, '');
+            return db.collection('phoneLookup').doc(digits);
+        };
+        const legacyUserRecordsRef = (uid) => db.collection('users').doc(uid).collection('records');
+        const legacyUserClientsRef = (uid) => db.collection('users').doc(uid).collection('clients');
 
-        const checkUserAllowed = async (email) => {
+        const DEFAULT_SLOTS = ['09:00', '14:00', '16:30'];
+        const DEFAULT_ENABLED = ['09:00', '14:00'];
+
+        const checkIsAdmin = async (email) => {
             if (!email) return false;
             const doc = await db.collection('allowedUsers').doc(email).get();
             return doc.exists && doc.data().active !== false;
+        };
+
+        const normalizePhone = (phone) => {
+            let d = (phone || '').replace(/\D/g, '');
+            if (d.length === 11 && d.startsWith('8')) d = '7' + d.slice(1);
+            if (d.length === 10) d = '7' + d;
+            return d ? '+' + d : '';
+        };
+
+        const slotKey = (date, time) => date + '_' + (time || '').replace(':', '-');
+
+        const getClientAdminName = (client) => client.adminName || client.name || '';
+
+        const getGreeting = () => {
+            const h = new Date().getHours();
+            if (h >= 5 && h < 12) return 'Доброе утро';
+            if (h >= 12 && h < 18) return 'Добрый день';
+            return 'Добрый вечер';
+        };
+
+        const getDaysInRange = (startDate, endDate, excludedDates) => {
+            if (!startDate || !endDate) return [];
+            const excluded = excludedDates || [];
+            const days = [];
+            const d = new Date(startDate + 'T12:00:00');
+            const end = new Date(endDate + 'T12:00:00');
+            while (d <= end) {
+                const str = d.toISOString().split('T')[0];
+                if (!excluded.includes(str)) days.push(str);
+                d.setDate(d.getDate() + 1);
+            }
+            return days;
+        };
+
+        const useClickOutside = (ref, isActive, onClose) => {
+            useEffect(() => {
+                if (!isActive) return;
+                const handler = (e) => {
+                    if (ref.current && !ref.current.contains(e.target)) onClose();
+                };
+                const t = setTimeout(() => {
+                    document.addEventListener('mousedown', handler);
+                    document.addEventListener('touchstart', handler);
+                }, 0);
+                return () => {
+                    clearTimeout(t);
+                    document.removeEventListener('mousedown', handler);
+                    document.removeEventListener('touchstart', handler);
+                };
+            }, [isActive, onClose]);
+        };
+
+        const syncBookedSlot = async (recordId, date, time, bookedByUid) => {
+            if (!date || !time) return;
+            await bookedSlotsRef().doc(slotKey(date, time)).set({ date, time, recordId, bookedByUid: bookedByUid || null });
+        };
+
+        const removeBookedSlot = async (date, time) => {
+            if (!date || !time) return;
+            await bookedSlotsRef().doc(slotKey(date, time)).delete().catch(() => {});
         };
 
         const LoginScreen = ({ onSignIn, error, loading }) => (
@@ -328,24 +400,6 @@
                     >
                         <Icons.Google />
                         {loading ? 'Вход...' : 'Войти через Google'}
-                    </button>
-                </div>
-            </div>
-        );
-
-        const AccessDeniedScreen = ({ email, onSignOut }) => (
-            <div className="auth-screen">
-                <div className="glass-panel w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl">
-                    <h1 className="text-xl font-bold text-stone-800 dark:text-stone-100 mb-3">Нет доступа</h1>
-                    <p className="text-stone-500 dark:text-stone-400 text-sm mb-2">
-                        Аккаунт <span className="font-medium text-stone-700 dark:text-stone-300">{email}</span> не добавлен в список разрешённых.
-                    </p>
-                    <p className="text-stone-400 dark:text-stone-500 text-xs mb-6">Обратитесь к администратору, чтобы добавить ваш Gmail в Firebase.</p>
-                    <button
-                        onClick={onSignOut}
-                        className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-3 px-4 rounded-xl"
-                    >
-                        Выйти
                     </button>
                 </div>
             </div>
@@ -377,6 +431,12 @@
 
         const todayString = new Date().toISOString().split('T')[0];
 
+        const isBookingWindowActive = (window) => {
+            if (!window || !window.isOpen) return false;
+            if (window.endDate && window.endDate < todayString) return false;
+            return true;
+        };
+
         const getTimeBasedTheme = () => {
             const hour = new Date().getHours();
             return (hour >= 20 || hour < 7) ? 'dark' : 'light';
@@ -403,16 +463,35 @@
             </button>
         );
 
-        const RecordCard = ({ record, isArchiveView, onEdit, onDelete, onArchive, onRestore }) => {
+        const RecordCard = ({ record, isArchiveView, onEdit, onDelete, onArchive, onRestore, onAcknowledge }) => {
             const [showActions, setShowActions] = useState(false);
+            const cardRef = React.useRef(null);
             const note = isNote(record);
+            const isNewSelf = record.isSelfBooked && record.isNewFromClient;
+
+            useClickOutside(cardRef, showActions, () => setShowActions(false));
+
+            const handleCardClick = () => {
+                if (isNewSelf && onAcknowledge) {
+                    onAcknowledge(record.id);
+                    return;
+                }
+                setShowActions(!showActions);
+            };
+
+            const stripeClass = isNewSelf
+                ? 'bg-gradient-to-b from-emerald-400 to-emerald-600 dark:from-emerald-500 dark:to-emerald-700'
+                : note
+                    ? 'bg-gradient-to-b from-violet-300 to-violet-500 dark:from-violet-400 dark:to-violet-600'
+                    : 'bg-gradient-to-b from-nude to-bronze dark:from-gold dark:to-golddark';
 
             return (
                 <div 
+                    ref={cardRef}
                     className="glass-panel rounded-2xl p-4 mb-4 relative overflow-hidden transition-all cursor-pointer select-none" 
-                    onClick={() => setShowActions(!showActions)}
+                    onClick={handleCardClick}
                 >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 opacity-90 ${note ? 'bg-gradient-to-b from-violet-300 to-violet-500 dark:from-violet-400 dark:to-violet-600' : 'bg-gradient-to-b from-nude to-bronze dark:from-gold dark:to-golddark'}`}></div>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 opacity-90 ${stripeClass}`}></div>
                     
                     {note ? (
                         <div className="ml-2">
@@ -430,7 +509,12 @@
                         <React.Fragment>
                             <div className="flex justify-between items-start ml-2">
                                 <div className="flex-1 min-w-0 pr-2">
-                                    <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100">{record.clientName}</h3>
+                                    <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100 flex items-center gap-1.5">
+                                        {record.isSelfBooked && (
+                                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-bold shrink-0" title="Запись клиента">К</span>
+                                        )}
+                                        <span className="truncate">{record.clientName}</span>
+                                    </h3>
                                     {record.phone && (
                                         <div className="flex items-center text-stone-500 dark:text-stone-400 text-sm mt-1">
                                             <span className="text-bronze dark:text-gold mr-1.5"><Icons.Phone /></span>
@@ -485,11 +569,14 @@
         };
 
         const EditClientModal = ({ client, isOpen, onClose, onSave, onDelete }) => {
-            const [formData, setFormData] = useState({ id: '', name: '', phone: '', isInactive: false });
+            const [formData, setFormData] = useState({ id: '', adminName: '', phone: '', isInactive: false });
 
             useEffect(() => {
                 if (isOpen && client) {
-                    setFormData(client);
+                    setFormData({
+                        ...client,
+                        adminName: getClientAdminName(client)
+                    });
                 }
             }, [isOpen, client]);
 
@@ -508,7 +595,7 @@
                         <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="p-5 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Имя *</label>
-                                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="glass-input w-full px-4 py-3 rounded-xl" />
+                                <input required type="text" value={formData.adminName} onChange={e => setFormData({...formData, adminName: e.target.value})} className="glass-input w-full px-4 py-3 rounded-xl" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Телефон</label>
@@ -540,10 +627,11 @@
             );
         };
 
-        const AddModal = ({ initialData, clients, isOpen, onClose, onSave }) => {
+        const AddModal = ({ initialData, clients, isOpen, onClose, onSave, bookingWindow, bookedSlots }) => {
             const [entryType, setEntryType] = useState('appointment');
+            const [customTime, setCustomTime] = useState(false);
             const [formData, setFormData] = useState({
-                type: 'appointment', clientName: '', phone: '', date: todayString, time: '10:00', service: '', price: '', noteText: '', archived: false
+                type: 'appointment', clientName: '', phone: '', date: todayString, time: '10:00', service: '', price: '', noteText: '', archived: false, customTime: false
             });
             const [selectedPresets, setSelectedPresets] = useState([]);
             const [customService, setCustomService] = useState('');
@@ -552,7 +640,9 @@
             useEffect(() => {
                 if (isOpen) {
                     if (initialData) {
-                        setFormData({ type: 'appointment', archived: false, ...initialData });
+                        const ct = !!initialData.customTime;
+                        setCustomTime(ct);
+                        setFormData({ type: 'appointment', archived: false, customTime: ct, ...initialData });
                         if (isNote(initialData)) {
                             setEntryType('note');
                         } else {
@@ -563,13 +653,35 @@
                         }
                     } else {
                         setEntryType('appointment');
-                        setFormData({ type: 'appointment', clientName: '', phone: '', date: todayString, time: '10:00', service: '', price: '', noteText: '', archived: false });
+                        setCustomTime(false);
+                        const firstDay = isBookingWindowActive(bookingWindow)
+                            ? getDaysInRange(bookingWindow.startDate, bookingWindow.endDate, bookingWindow.excludedDates).find(d => d >= todayString)
+                            : todayString;
+                        const firstTime = (bookingWindow && bookingWindow.enabledSlots && bookingWindow.enabledSlots[0]) || '09:00';
+                        setFormData({ type: 'appointment', clientName: '', phone: '', date: firstDay || todayString, time: firstTime, service: '', price: '', noteText: '', archived: false, customTime: false });
                         setSelectedPresets([]);
                         setCustomService('');
                     }
                     setShowSuggestions(false);
                 }
-            }, [isOpen, initialData]);
+            }, [isOpen, initialData, bookingWindow]);
+
+            const takenSet = useMemo(() => new Set((bookedSlots || []).map(s => slotKey(s.date, s.time))), [bookedSlots]);
+
+            const windowDays = useMemo(() => {
+                if (!isBookingWindowActive(bookingWindow)) return [];
+                return getDaysInRange(bookingWindow.startDate, bookingWindow.endDate, bookingWindow.excludedDates)
+                    .filter(d => d >= todayString);
+            }, [bookingWindow]);
+
+            const availableTimesForDate = (date) => {
+                if (!isBookingWindowActive(bookingWindow) || !date) return [];
+                const editingKey = initialData && initialData.date === date && initialData.time ? slotKey(date, initialData.time) : null;
+                return (bookingWindow.enabledSlots || []).filter(t => {
+                    const key = slotKey(date, t);
+                    return key === editingKey || !takenSet.has(key);
+                });
+            };
 
             const updateService = (presets, custom) => {
                 const service = buildService(presets, custom);
@@ -598,7 +710,7 @@
 
             const filteredClients = clients.filter(c => 
                 !c.isInactive && 
-                c.name.toLowerCase().includes((formData.clientName || '').toLowerCase())
+                getClientAdminName(c).toLowerCase().includes((formData.clientName || '').toLowerCase())
             );
 
             const handleChange = (e) => {
@@ -611,7 +723,7 @@
                 if (entryType === 'note') {
                     onSave({ ...formData, type: 'note', archived: formData.archived || false });
                 } else {
-                    onSave({ ...formData, type: 'appointment', archived: formData.archived || false });
+                    onSave({ ...formData, type: 'appointment', archived: formData.archived || false, customTime });
                 }
             };
 
@@ -679,17 +791,25 @@
                                     <div className="autocomplete-dropdown">
                                         {filteredClients.map(c => (
                                             <div key={c.id} className="autocomplete-item" onClick={() => {
-                                                setFormData({...formData, clientName: c.name, phone: c.phone || formData.phone});
+                                                setFormData({...formData, clientName: getClientAdminName(c), phone: c.phone || formData.phone});
                                                 setShowSuggestions(false);
                                             }}>
-                                                <div className="font-medium">{c.name}</div>
+                                                <div className="font-medium">{getClientAdminName(c)}</div>
                                                 {c.phone && <div className="text-xs text-stone-500 dark:text-stone-400">{c.phone}</div>}
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                            
+
+                            {isBookingWindowActive(bookingWindow) && (
+                                <label className="flex items-center gap-2 bg-white/50 dark:bg-stonepanel p-3 rounded-xl border border-nude/50 dark:border-gold/10 cursor-pointer">
+                                    <input type="checkbox" checked={customTime} onChange={e => setCustomTime(e.target.checked)} className="w-5 h-5 accent-bronze dark:accent-gold" />
+                                    <span className="text-sm text-stone-700 dark:text-stone-300">Нестандартное время</span>
+                                </label>
+                            )}
+
+                            {customTime || !isBookingWindowActive(bookingWindow) ? (
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Дата *</label>
@@ -700,6 +820,32 @@
                                     <input required type="time" name="time" value={formData.time} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl dark:[&::-webkit-calendar-picker-indicator]:invert" />
                                 </div>
                             </div>
+                            ) : (
+                            <React.Fragment>
+                                <div>
+                                    <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Дата *</label>
+                                    <select required value={formData.date} onChange={e => {
+                                        const date = e.target.value;
+                                        const times = availableTimesForDate(date);
+                                        setFormData(prev => ({ ...prev, date, time: times[0] || prev.time }));
+                                    }} className="glass-input w-full px-4 py-3 rounded-xl">
+                                        {windowDays.map(d => (
+                                            <option key={d} value={d}>{formatDate(d)}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Время *</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {availableTimesForDate(formData.date).map(time => (
+                                            <button key={time} type="button" onClick={() => setFormData(prev => ({ ...prev, time }))} className={`px-4 py-2 rounded-xl text-sm border ${formData.time === time ? 'bg-bronze text-white border-bronze dark:bg-gold/20 dark:text-gold dark:border-gold/40' : 'bg-white/70 border-nude/60 dark:bg-stonepanel dark:border-gold/10'}`}>
+                                                {time}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Услуга</label>
@@ -778,7 +924,7 @@
                         phone: (c.tel && c.tel[0]) || ''
                     })).filter(c => c.name);
                     const existingPhones = new Set(existingClients.map(c => (c.phone || '').replace(/\D/g, '')).filter(Boolean));
-                    const existingNames = new Set(existingClients.map(c => c.name.toLowerCase()));
+                    const existingNames = new Set(existingClients.map(c => getClientAdminName(c).toLowerCase()));
                     const fresh = normalized.filter(c => {
                         const phoneKey = c.phone.replace(/\D/g, '');
                         if (phoneKey && existingPhones.has(phoneKey)) return false;
@@ -832,6 +978,257 @@
                                     Импортировать ({selectedCount})
                                 </button>
                             </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const ProfileSetupScreen = ({ onSave, loading, error }) => {
+            const [firstName, setFirstName] = useState('');
+            const [lastName, setLastName] = useState('');
+            const [phone, setPhone] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const normalized = normalizePhone(phone);
+                if (!firstName.trim() || !lastName.trim() || normalized.length < 12) {
+                    alert('Заполните имя, фамилию и номер телефона в формате +7...');
+                    return;
+                }
+                onSave({ firstName: firstName.trim(), lastName: lastName.trim(), phone: normalized });
+            };
+
+            return (
+                <div className="auth-screen">
+                    <div className="glass-panel w-full max-w-sm rounded-3xl p-8 shadow-2xl">
+                        <h1 className="text-xl font-bold text-stone-800 dark:text-stone-100 mb-2">Добро пожаловать!</h1>
+                        <p className="text-stone-500 dark:text-stone-400 text-sm mb-6">Заполните данные для записи к мастеру</p>
+                        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1">Имя *</label>
+                                <input required value={firstName} onChange={e => setFirstName(e.target.value)} className="glass-input w-full px-4 py-3 rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1">Фамилия *</label>
+                                <input required value={lastName} onChange={e => setLastName(e.target.value)} className="glass-input w-full px-4 py-3 rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1">WhatsApp *</label>
+                                <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+77001234567" className="glass-input w-full px-4 py-3 rounded-xl" />
+                                <p className="text-xs text-stone-400 mt-1">Формат: +7 и 10 цифр</p>
+                            </div>
+                            <button type="submit" disabled={loading} className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-3.5 rounded-xl disabled:opacity-60">
+                                {loading ? 'Сохранение...' : 'Продолжить'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        const ClientBookingApp = ({ profile, bookingWindow, bookedSlots, myRecords, onBook, onSignOut, themeMode, effectiveTheme, onThemeToggle }) => {
+            const [selectedDate, setSelectedDate] = useState('');
+            const [selectedTime, setSelectedTime] = useState('');
+
+            const upcomingBooking = useMemo(() => {
+                return myRecords
+                    .filter(r => !r.archived && r.type !== 'note' && r.date >= todayString)
+                    .sort((a, b) => a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time))[0];
+            }, [myRecords]);
+
+            const daysSinceVisit = useMemo(() => {
+                const past = myRecords.filter(r => r.type !== 'note' && r.date < todayString);
+                if (!past.length) return null;
+                const last = past.sort((a, b) => b.date.localeCompare(a.date))[0];
+                const diff = Math.floor((new Date(todayString) - new Date(last.date)) / (86400000));
+                return diff;
+            }, [myRecords]);
+
+            const availableDays = useMemo(() => {
+                if (!isBookingWindowActive(bookingWindow)) return [];
+                return getDaysInRange(bookingWindow.startDate, bookingWindow.endDate, bookingWindow.excludedDates)
+                    .filter(d => d >= todayString);
+            }, [bookingWindow]);
+
+            const takenSet = useMemo(() => new Set(bookedSlots.map(s => slotKey(s.date, s.time))), [bookedSlots]);
+
+            const slotsForDay = (date) => {
+                if (!bookingWindow) return [];
+                return (bookingWindow.enabledSlots || []).filter(t => !takenSet.has(slotKey(date, t)));
+            };
+
+            const handleBook = () => {
+                if (!selectedDate || !selectedTime) return;
+                if (window.confirm(`Записаться на ${formatDate(selectedDate)} в ${selectedTime}?`)) {
+                    onBook(selectedDate, selectedTime);
+                    setSelectedDate('');
+                    setSelectedTime('');
+                }
+            };
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen flex flex-col relative pt-8 px-4 pb-28">
+                    <div className="flex justify-between items-center mb-6 px-2">
+                        <div />
+                        <div className="flex gap-2">
+                            <ThemeToggleButton themeMode={themeMode} effectiveTheme={effectiveTheme} onToggle={onThemeToggle} className="h-[42px] w-[42px] rounded-xl glass-panel text-bronze dark:text-gold border border-nude/60 dark:border-gold/20 flex items-center justify-center" />
+                            <button onClick={onSignOut} className="h-[42px] w-[42px] rounded-xl border flex items-center justify-center bg-white/70 border-nude/60 text-stone-500 dark:bg-stonepanel dark:border-gold/10" title="Выйти"><Icons.LogOut /></button>
+                        </div>
+                    </div>
+
+                    <div className="px-2 mb-6">
+                        <h1 className="text-2xl font-bold text-stone-800 dark:text-stone-100">
+                            {getGreeting()}, {profile.firstName} {profile.lastName}!
+                        </h1>
+                        {daysSinceVisit !== null && (
+                            <p className="text-sm text-stone-500 dark:text-stone-400 mt-2">
+                                С последнего визита: {daysSinceVisit} {getDaysWord(daysSinceVisit)}
+                            </p>
+                        )}
+                    </div>
+
+                    {upcomingBooking && (
+                        <div className="mx-2 mb-6 glass-panel rounded-2xl p-4 border border-bronze/30 dark:border-gold/20">
+                            <div className="text-sm font-medium text-bronze dark:text-gold mb-1">Моя запись</div>
+                            <div className="font-bold text-stone-800 dark:text-stone-100">{formatDate(upcomingBooking.date)} · {upcomingBooking.time}</div>
+                        </div>
+                    )}
+
+                    {!isBookingWindowActive(bookingWindow) ? (
+                        <div className="text-center py-16 glass-panel rounded-3xl mx-2 text-stone-500">Окно записи пока закрыто</div>
+                    ) : upcomingBooking ? (
+                        <div className="text-center py-10 px-6 glass-panel rounded-3xl mx-2 text-stone-500 text-sm">У вас уже есть запись. Дождитесь визита или свяжитесь с мастером.</div>
+                    ) : (
+                        <div className="space-y-6 px-2 flex-1">
+                            {availableDays.map(date => {
+                                const slots = slotsForDay(date);
+                                if (!slots.length) return null;
+                                return (
+                                    <div key={date}>
+                                        <div className="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2 capitalize">{formatDate(date)}</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {slots.map(time => (
+                                                <button
+                                                    key={time}
+                                                    onClick={() => { setSelectedDate(date); setSelectedTime(time); }}
+                                                    className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${selectedDate === date && selectedTime === time ? 'bg-bronze text-white border-bronze dark:bg-gold/20 dark:text-gold dark:border-gold/40' : 'bg-white/70 border-nude/60 text-stone-700 dark:bg-stonepanel dark:border-gold/10 dark:text-stone-200'}`}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {selectedDate && selectedTime && !upcomingBooking && (
+                        <div className="fixed bottom-0 left-0 right-0 p-4 glass-nav pb-safe z-40">
+                            <div className="max-w-md mx-auto">
+                                <button onClick={handleBook} className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-4 rounded-2xl shadow-lg">
+                                    Записаться · {selectedTime}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const BookingWindowScreen = ({ onBack, onOpen, onCloseWindow, initial }) => {
+            const [startDate, setStartDate] = useState(initial && initial.startDate ? initial.startDate : todayString);
+            const [endDate, setEndDate] = useState(initial && initial.endDate ? initial.endDate : todayString);
+            const [excludedDates, setExcludedDates] = useState(initial && initial.excludedDates ? initial.excludedDates : []);
+            const [timeSlots, setTimeSlots] = useState(initial && initial.timeSlots ? initial.timeSlots : DEFAULT_SLOTS.slice());
+            const [enabledSlots, setEnabledSlots] = useState(initial && initial.enabledSlots ? initial.enabledSlots : DEFAULT_ENABLED.slice());
+            const [newTime, setNewTime] = useState('');
+
+            const rangeDays = useMemo(() => getDaysInRange(startDate, endDate, []), [startDate, endDate]);
+
+            const toggleExcluded = (date) => {
+                setExcludedDates(prev => prev.includes(date) ? prev.filter(d => d !== date) : [...prev, date]);
+            };
+
+            const toggleSlot = (time) => {
+                setEnabledSlots(prev => prev.includes(time) ? prev.filter(t => t !== time) : [...prev, time]);
+            };
+
+            const addTime = () => {
+                if (!newTime || timeSlots.includes(newTime)) return;
+                setTimeSlots(prev => [...prev, newTime].sort());
+                setNewTime('');
+            };
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen pt-8 px-4 pb-28">
+                    <div className="flex items-center gap-3 mb-6 px-2">
+                        <button onClick={onBack} className="p-2 rounded-xl glass-panel"><Icons.Undo /></button>
+                        <h1 className="text-xl font-bold text-stone-800 dark:text-stone-100">Окно записи</h1>
+                    </div>
+
+                    <div className="space-y-5 px-2">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm text-stone-600 dark:text-stone-300 mb-1">С</label>
+                                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="glass-input w-full px-3 py-2.5 rounded-xl dark:[&::-webkit-calendar-picker-indicator]:invert" />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-stone-600 dark:text-stone-300 mb-1">По</label>
+                                <input type="date" value={endDate} min={startDate} onChange={e => setEndDate(e.target.value)} className="glass-input w-full px-3 py-2.5 rounded-xl dark:[&::-webkit-calendar-picker-indicator]:invert" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-2">Выходные в диапазоне</label>
+                            <div className="flex flex-wrap gap-2">
+                                {rangeDays.map(date => (
+                                    <button key={date} type="button" onClick={() => toggleExcluded(date)} className={`px-2.5 py-1 rounded-lg text-xs border ${excludedDates.includes(date) ? 'bg-red-100 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400' : 'bg-white/70 border-nude/60 dark:bg-stonepanel dark:border-gold/10'}`}>
+                                        {new Date(date + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-2">Время</label>
+                            <div className="flex flex-wrap gap-2">
+                                {timeSlots.map(time => (
+                                    <button key={time} type="button" onClick={() => toggleSlot(time)} className={`px-4 py-2 rounded-xl text-sm border ${enabledSlots.includes(time) ? 'bg-bronze text-white border-bronze dark:bg-gold/20 dark:text-gold dark:border-gold/40' : 'bg-white/70 border-nude/60 opacity-50 dark:bg-stonepanel dark:border-gold/10'}`}>
+                                        {time}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                                <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)} className="glass-input flex-1 px-3 py-2 rounded-xl dark:[&::-webkit-calendar-picker-indicator]:invert" />
+                                <button type="button" onClick={addTime} className="px-4 py-2 rounded-xl bg-white/70 border border-nude/60 dark:bg-stonepanel text-sm">Добавить</button>
+                            </div>
+                        </div>
+
+                        {isBookingWindowActive(initial) && (
+                            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 text-sm text-emerald-700 dark:text-emerald-300">
+                                Окно открыто до {formatDate(initial.endDate)}
+                            </div>
+                        )}
+
+                        <button onClick={() => onOpen({ startDate, endDate, excludedDates, timeSlots, enabledSlots, isOpen: true })} className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-4 rounded-2xl mt-4">
+                            Открыть окно записей
+                        </button>
+
+                        {isBookingWindowActive(initial) && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (window.confirm('Закрыть окно записи? Клиенты больше не смогут записываться.')) {
+                                        onCloseWindow({ startDate, endDate, excludedDates, timeSlots, enabledSlots });
+                                    }
+                                }}
+                                className="w-full py-4 rounded-2xl mt-2 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            >
+                                Закрыть окно
+                            </button>
                         )}
                     </div>
                 </div>
@@ -924,33 +1321,34 @@
         const App = () => {
             const [user, setUser] = useState(null);
             const [authLoading, setAuthLoading] = useState(true);
-            const [isAllowed, setIsAllowed] = useState(false);
+            const [isAdmin, setIsAdmin] = useState(false);
             const [accessChecked, setAccessChecked] = useState(false);
             const [authError, setAuthError] = useState('');
             const [signInLoading, setSignInLoading] = useState(false);
+            const [profileSaving, setProfileSaving] = useState(false);
             const [dataLoading, setDataLoading] = useState(false);
 
+            const [userProfile, setUserProfile] = useState(null);
             const [records, setRecords] = useState([]);
             const [clients, setClients] = useState([]);
-            
+            const [bookingWindow, setBookingWindow] = useState(null);
+            const [bookedSlots, setBookedSlots] = useState([]);
+            const [myRecords, setMyRecords] = useState([]);
+
             const [activeTab, setActiveTab] = useState('schedule');
-            
-            // Состояния расписания
-            const [scheduleMode, setScheduleMode] = useState('upcoming'); 
-            const [selectedDate, setSelectedDate] = useState(''); 
+            const [adminView, setAdminView] = useState('main');
+            const [scheduleMode, setScheduleMode] = useState('upcoming');
+            const [selectedDate, setSelectedDate] = useState('');
             const [scheduleSearch, setScheduleSearch] = useState('');
-            
             const [clientSearch, setClientSearch] = useState('');
-            
+
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [editingRecord, setEditingRecord] = useState(null);
-            
             const [isClientModalOpen, setIsClientModalOpen] = useState(false);
             const [editingClient, setEditingClient] = useState(null);
             const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
             const [isContactImportOpen, setIsContactImportOpen] = useState(false);
 
-            // Тема: auto — по времени суток, light/dark — вручную
             const [themeMode, setThemeMode] = useState(() => {
                 const saved = localStorage.getItem('manicureTheme');
                 if (saved === 'light' || saved === 'dark' || saved === 'auto') return saved;
@@ -959,11 +1357,8 @@
             const effectiveTheme = themeMode === 'auto' ? getTimeBasedTheme() : themeMode;
 
             useEffect(() => {
-                if (effectiveTheme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
+                if (effectiveTheme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
                 localStorage.setItem('manicureTheme', themeMode);
             }, [effectiveTheme, themeMode]);
 
@@ -973,169 +1368,248 @@
                 const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
                     setUser(firebaseUser);
                     setAuthError('');
-
                     if (!firebaseUser) {
-                        setIsAllowed(false);
+                        setIsAdmin(false);
+                        setUserProfile(null);
                         setAccessChecked(true);
                         setRecords([]);
                         setClients([]);
+                        setMyRecords([]);
                         setAuthLoading(false);
                         return;
                     }
-
                     setAccessChecked(false);
                     try {
-                        const allowed = await checkUserAllowed(firebaseUser.email);
-                        setIsAllowed(allowed);
+                        const admin = await checkIsAdmin(firebaseUser.email);
+                        setIsAdmin(admin);
+                        const profSnap = await userProfileRef(firebaseUser.uid).get();
+                        setUserProfile(profSnap.exists ? profSnap.data() : null);
                     } catch (e) {
                         console.error(e);
-                        setAuthError('Не удалось проверить доступ. Попробуйте позже.');
-                        setIsAllowed(false);
+                        setAuthError('Ошибка загрузки профиля.');
                     } finally {
                         setAccessChecked(true);
                         setAuthLoading(false);
                     }
                 });
-
                 return () => unsubscribe();
             }, []);
 
-            const migrateLocalData = useCallback(async (uid) => {
-                const existing = await userRecordsRef(uid).limit(1).get();
+            const migrateSharedData = useCallback(async (uid) => {
+                const existing = await recordsRef().limit(1).get();
                 if (!existing.empty) return;
-
-                const localRecords = JSON.parse(localStorage.getItem('manicureRecordsDark') || '[]');
-                const localClients = JSON.parse(localStorage.getItem('manicureClientsDark') || '[]');
-                if (!localRecords.length && !localClients.length) return;
-
+                const legRec = await legacyUserRecordsRef(uid).get();
+                const legCli = await legacyUserClientsRef(uid).get();
+                if (legRec.empty && legCli.empty) return;
                 const batch = db.batch();
-                localRecords.forEach(r => batch.set(userRecordsRef(uid).doc(String(r.id)), r));
-                localClients.forEach(c => batch.set(userClientsRef(uid).doc(String(c.id)), c));
+                legRec.forEach(d => batch.set(recordsRef().doc(d.id), d.data()));
+                legCli.forEach(d => {
+                    const data = d.data();
+                    const adminName = data.adminName || data.name || '';
+                    const phone = data.phone || '';
+                    batch.set(clientsRef().doc(d.id), { ...data, adminName });
+                    if (phone) batch.set(phoneLookupRef(phone), { clientId: data.id || d.id });
+                });
                 await batch.commit();
             }, []);
 
             useEffect(() => {
-                if (!user || !isAllowed) return;
-
+                if (!user) return;
                 let active = true;
-                let unsubRecords = null;
-                let unsubClients = null;
-                setDataLoading(true);
+                const unsubs = [];
 
-                migrateLocalData(user.uid)
-                    .catch(e => console.error('Migration error:', e))
-                    .finally(() => {
-                        if (!active) return;
-                        unsubRecords = userRecordsRef(user.uid).onSnapshot(
-                            snap => setRecords(snap.docs.map(d => d.data())),
-                            err => console.error('Records sync error:', err)
-                        );
-                        unsubClients = userClientsRef(user.uid).onSnapshot(
-                            snap => setClients(snap.docs.map(d => d.data())),
-                            err => console.error('Clients sync error:', err)
-                        );
-                        setDataLoading(false);
-                    });
+                const setup = async () => {
+                    setDataLoading(true);
+                    if (isAdmin) await migrateSharedData(user.uid).catch(console.error);
+                    if (!active) return;
 
-                return () => {
-                    active = false;
-                    if (unsubRecords) unsubRecords();
-                    if (unsubClients) unsubClients();
+                    unsubs.push(bookingWindowRef().onSnapshot(s => setBookingWindow(s.exists ? s.data() : null)));
+                    unsubs.push(bookedSlotsRef().onSnapshot(s => setBookedSlots(s.docs.map(d => d.data()))));
+
+                    if (isAdmin) {
+                        unsubs.push(recordsRef().onSnapshot(s => setRecords(s.docs.map(d => d.data()))));
+                        unsubs.push(clientsRef().onSnapshot(s => setClients(s.docs.map(d => d.data()))));
+                    } else {
+                        unsubs.push(recordsRef().where('bookedByUid', '==', user.uid).onSnapshot(s => setMyRecords(s.docs.map(d => d.data()))));
+                    }
+                    setDataLoading(false);
                 };
-            }, [user, isAllowed, migrateLocalData]);
+                setup();
+                return () => { active = false; unsubs.forEach(u => u()); };
+            }, [user, isAdmin, migrateSharedData]);
+
+            useEffect(() => {
+                if (!isAdmin || !bookingWindow || !bookingWindow.isOpen) return;
+                if (bookingWindow.endDate && bookingWindow.endDate < todayString) {
+                    bookingWindowRef().update({ isOpen: false, closedAt: Date.now(), closedReason: 'expired' }).catch(console.error);
+                }
+            }, [isAdmin, bookingWindow]);
 
             const handleGoogleSignIn = async () => {
                 setSignInLoading(true);
                 setAuthError('');
-                try {
-                    await auth.signInWithPopup(googleProvider);
-                } catch (e) {
-                    if (e.code !== 'auth/popup-closed-by-user') {
-                        setAuthError('Не удалось войти. Попробуйте ещё раз.');
+                try { await auth.signInWithPopup(googleProvider); }
+                catch (e) { if (e.code !== 'auth/popup-closed-by-user') setAuthError('Не удалось войти.'); }
+                finally { setSignInLoading(false); }
+            };
+
+            const handleSignOut = async () => { await auth.signOut(); };
+
+            const ensureClientInDb = async (phone, adminName, linkedUid) => {
+                const norm = normalizePhone(phone);
+                const lookup = await phoneLookupRef(phone).get();
+                if (lookup.exists) {
+                    const clientId = lookup.data().clientId;
+                    const clientRef = clientsRef().doc(String(clientId));
+                    const clientSnap = await clientRef.get();
+                    if (clientSnap.exists && linkedUid && !clientSnap.data().linkedUid) {
+                        await clientRef.update({ linkedUid });
                     }
+                    return clientSnap.exists ? clientSnap.data() : null;
+                }
+                const id = Date.now();
+                const data = { id, adminName, phone: norm, isInactive: false, linkedUid: linkedUid || null };
+                await clientsRef().doc(String(id)).set(data);
+                await phoneLookupRef(phone).set({ clientId: id });
+                return data;
+            };
+
+            const handleSaveProfile = async (data) => {
+                if (!user) return;
+                setProfileSaving(true);
+                try {
+                    const profile = { ...data, email: user.email, uid: user.uid };
+                    await userProfileRef(user.uid).set(profile);
+                    const adminName = data.firstName + ' ' + data.lastName;
+                    await ensureClientInDb(data.phone, adminName, user.uid);
+                    setUserProfile(profile);
+                } catch (e) {
+                    setAuthError('Не удалось сохранить профиль.');
                 } finally {
-                    setSignInLoading(false);
+                    setProfileSaving(false);
                 }
             };
 
-            const handleSignOut = async () => {
-                await auth.signOut();
+            const handleClientBook = async (date, time) => {
+                if (!user || !userProfile) return;
+                if (bookedSlots.some(s => s.date === date && s.time === time)) {
+                    alert('Это время уже занято. Выберите другое.');
+                    return;
+                }
+                const norm = normalizePhone(userProfile.phone);
+                const client = await ensureClientInDb(norm, userProfile.firstName + ' ' + userProfile.lastName, user.uid);
+                if (!client) {
+                    alert('Не удалось создать запись. Попробуйте позже.');
+                    return;
+                }
+                const id = Date.now();
+                const record = {
+                    id, type: 'appointment', date, time,
+                    clientName: getClientAdminName(client),
+                    phone: norm,
+                    clientId: client.id,
+                    bookedByUid: user.uid,
+                    isSelfBooked: true,
+                    isNewFromClient: true,
+                    service: 'Онлайн-запись',
+                    price: '',
+                    archived: false
+                };
+                await recordsRef().doc(String(id)).set(record);
+                await syncBookedSlot(id, date, time, user.uid);
             };
 
             const handleSaveRecord = async (recordData) => {
-                if (!user) return;
+                if (!user || !isAdmin) return;
                 const id = editingRecord ? recordData.id : Date.now();
                 const data = { ...recordData, id };
+                const old = editingRecord;
 
-                await userRecordsRef(user.uid).doc(String(id)).set(data);
-
-                if (!isNote(data) && data.clientName) {
-                    const existingClient = clients.find(c => c.name.toLowerCase() === recordData.clientName.toLowerCase());
-                    if (!existingClient) {
-                        const clientId = Date.now() + 1;
-                        await userClientsRef(user.uid).doc(String(clientId)).set({
-                            id: clientId,
-                            name: recordData.clientName,
-                            phone: recordData.phone || '',
-                            isInactive: false
-                        });
-                    } else if (recordData.phone && !existingClient.phone) {
-                        await userClientsRef(user.uid).doc(String(existingClient.id)).update({ phone: recordData.phone });
+                await recordsRef().doc(String(id)).set(data);
+                if (!isNote(data)) {
+                    if (old && old.date && old.time && !old.customTime) {
+                        await removeBookedSlot(old.date, old.time);
+                    }
+                    if (data.date && data.time && !data.customTime) {
+                        await syncBookedSlot(id, data.date, data.time, data.bookedByUid || null);
                     }
                 }
 
+                if (!isNote(data) && data.clientName && !data.isSelfBooked) {
+                    const norm = normalizePhone(data.phone);
+                    const existing = clients.find(c => getClientAdminName(c).toLowerCase() === data.clientName.toLowerCase());
+                    if (!existing) {
+                        const clientId = Date.now() + 1;
+                        await clientsRef().doc(String(clientId)).set({ id: clientId, adminName: data.clientName, phone: norm, isInactive: false });
+                        if (norm) await phoneLookupRef(norm).set({ clientId });
+                    } else if (norm && !existing.phone) {
+                        await clientsRef().doc(String(existing.id)).update({ phone: norm });
+                        await phoneLookupRef(norm).set({ clientId: existing.id });
+                    }
+                }
                 setEditingRecord(null);
                 setIsModalOpen(false);
             };
 
             const handleArchiveRecord = async (id) => {
-                if (!user) return;
-                await userRecordsRef(user.uid).doc(String(id)).update({ archived: true });
+                if (!user || !isAdmin) return;
+                await recordsRef().doc(String(id)).update({ archived: true });
             };
 
             const handleRestoreRecord = async (id) => {
-                if (!user) return;
-                await userRecordsRef(user.uid).doc(String(id)).update({ archived: false });
+                if (!user || !isAdmin) return;
+                await recordsRef().doc(String(id)).update({ archived: false });
+            };
+
+            const handleAcknowledgeRecord = async (id) => {
+                if (!user || !isAdmin) return;
+                await recordsRef().doc(String(id)).update({ isNewFromClient: false });
             };
 
             const handleDeleteRecord = async (id) => {
-                if (!user) return;
-                if (window.confirm('Вы уверены, что хотите удалить эту запись?')) {
-                    await userRecordsRef(user.uid).doc(String(id)).delete();
-                }
+                if (!user || !isAdmin) return;
+                if (!window.confirm('Удалить запись?')) return;
+                const rec = records.find(r => r.id === id);
+                await recordsRef().doc(String(id)).delete();
+                if (rec && rec.date && rec.time && !rec.customTime) await removeBookedSlot(rec.date, rec.time);
             };
 
             const handleSaveClient = async (updatedClient) => {
-                if (!user) return;
+                if (!user || !isAdmin) return;
                 const isNew = !updatedClient.id;
                 const clientId = isNew ? Date.now() : updatedClient.id;
-                const data = { ...updatedClient, id: clientId };
+                const adminName = updatedClient.adminName || updatedClient.name || '';
+                const data = { ...updatedClient, id: clientId, adminName, phone: normalizePhone(updatedClient.phone) || updatedClient.phone || '' };
 
-                await userClientsRef(user.uid).doc(String(clientId)).set(data);
-
-                if (!isNew) {
-                    const oldClient = clients.find(c => c.id === updatedClient.id);
-                    const oldName = oldClient ? oldClient.name : undefined;
-                    if (oldName && (oldName !== updatedClient.name || (oldClient ? oldClient.phone : undefined) !== updatedClient.phone)) {
-                        const related = records.filter(r => !isNote(r) && r.clientName === oldName);
-                        const batch = db.batch();
-                        related.forEach(r => {
-                            batch.update(userRecordsRef(user.uid).doc(String(r.id)), {
-                                clientName: updatedClient.name,
-                                phone: updatedClient.phone
-                            });
-                        });
-                        if (related.length) await batch.commit();
+                const oldClient = !isNew ? clients.find(c => c.id === updatedClient.id) : null;
+                await clientsRef().doc(String(clientId)).set(data);
+                if (data.phone) {
+                    await phoneLookupRef(data.phone).set({ clientId });
+                    if (oldClient && oldClient.phone && normalizePhone(oldClient.phone) !== data.phone) {
+                        await phoneLookupRef(oldClient.phone).delete().catch(() => {});
                     }
                 }
 
+                if (!isNew) {
+                    const oldClient = clients.find(c => c.id === updatedClient.id);
+                    const oldName = oldClient ? getClientAdminName(oldClient) : undefined;
+                    if (oldName && oldName !== adminName) {
+                        const batch = db.batch();
+                        records.filter(r => !isNote(r) && r.clientName === oldName).forEach(r => {
+                            batch.update(recordsRef().doc(String(r.id)), { clientName: adminName });
+                        });
+                        await batch.commit();
+                    }
+                }
                 setIsClientModalOpen(false);
                 setEditingClient(null);
             };
 
             const handleDeleteClient = async (clientId) => {
-                if (!user) return;
-                await userClientsRef(user.uid).doc(String(clientId)).delete();
+                if (!user || !isAdmin) return;
+                const client = clients.find(c => c.id === clientId);
+                await clientsRef().doc(String(clientId)).delete();
+                if (client && client.phone) await phoneLookupRef(client.phone).delete().catch(() => {});
                 setIsClientModalOpen(false);
                 setEditingClient(null);
             };
@@ -1145,17 +1619,27 @@
                 const batch = db.batch();
                 importList.forEach((c, i) => {
                     const id = Date.now() + i;
-                    batch.set(userClientsRef(user.uid).doc(String(id)), {
-                        id, name: c.name, phone: c.phone || '', isInactive: false
-                    });
+                    const phone = normalizePhone(c.phone) || c.phone || '';
+                    batch.set(clientsRef().doc(String(id)), { id, adminName: c.name, phone, isInactive: false });
+                    if (phone) batch.set(phoneLookupRef(phone), { clientId: id });
                 });
                 await batch.commit();
                 setIsContactImportOpen(false);
             };
 
+            const handleOpenBookingWindow = async (config) => {
+                await bookingWindowRef().set({ ...config, isOpen: true, updatedAt: Date.now(), closedAt: null, closedReason: null });
+                setAdminView('main');
+            };
+
+            const handleCloseBookingWindow = async (config) => {
+                await bookingWindowRef().set({ ...config, isOpen: false, updatedAt: Date.now(), closedAt: Date.now(), closedReason: 'manual' });
+                setAdminView('main');
+            };
+
             const handleFabClick = () => {
                 if (activeTab === 'clients') {
-                    setEditingClient({ id: null, name: '', phone: '', isInactive: false });
+                    setEditingClient({ id: null, adminName: '', phone: '', isInactive: false });
                     setIsClientModalOpen(true);
                 } else {
                     setEditingRecord(null);
@@ -1212,7 +1696,7 @@
 
                 records.forEach(r => {
                     if (isNote(r)) return;
-                    const client = clients.find(c => c.name === r.clientName);
+                    const client = clients.find(c => getClientAdminName(c) === r.clientName || c.id === r.clientId);
                     if (client && statsMap[client.id]) {
                         statsMap[client.id].visits += 1;
                         if (!statsMap[client.id].lastVisit || r.date > statsMap[client.id].lastVisit) {
@@ -1230,7 +1714,7 @@
                 let resultList = Object.values(statsMap);
                 if (clientSearch) {
                     resultList = resultList.filter(c => 
-                        c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                        getClientAdminName(c).toLowerCase().includes(clientSearch.toLowerCase()) ||
                         (c.phone && c.phone.includes(clientSearch))
                     );
                 }
@@ -1257,8 +1741,35 @@
                 return <LoginScreen onSignIn={handleGoogleSignIn} error={authError} loading={signInLoading} />;
             }
 
-            if (!isAllowed) {
-                return <AccessDeniedScreen email={user.email} onSignOut={handleSignOut} />;
+            if (!isAdmin && !userProfile) {
+                return <ProfileSetupScreen onSave={handleSaveProfile} loading={profileSaving} error={authError} />;
+            }
+
+            if (!isAdmin) {
+                return (
+                    <ClientBookingApp
+                        profile={userProfile}
+                        bookingWindow={bookingWindow}
+                        bookedSlots={bookedSlots}
+                        myRecords={myRecords}
+                        onBook={handleClientBook}
+                        onSignOut={handleSignOut}
+                        themeMode={themeMode}
+                        effectiveTheme={effectiveTheme}
+                        onThemeToggle={handleThemeToggle}
+                    />
+                );
+            }
+
+            if (adminView === 'bookingWindow') {
+                return (
+                    <BookingWindowScreen
+                        onBack={() => setAdminView('main')}
+                        onOpen={handleOpenBookingWindow}
+                        onCloseWindow={handleCloseBookingWindow}
+                        initial={bookingWindow}
+                    />
+                );
             }
 
             return (
@@ -1363,6 +1874,14 @@
                         <div className="mb-6 px-2 space-y-3">
                             <div className="flex justify-end gap-2">
                                 <button
+                                    onClick={() => setAdminView('bookingWindow')}
+                                    className="h-[42px] px-3 rounded-xl border flex items-center justify-center gap-1.5 transition-all shadow-sm bg-white/70 border-nude/60 text-bronze hover:text-bronzedark dark:bg-stonepanel dark:border-gold/10 dark:text-gold dark:hover:text-white text-xs font-semibold"
+                                    title="Окно записи"
+                                >
+                                    <Icons.Calendar />
+                                    <span>Окно</span>
+                                </button>
+                                <button
                                     onClick={() => setIsContactImportOpen(true)}
                                     className="h-[42px] w-[42px] rounded-xl border flex items-center justify-center transition-all shadow-sm bg-white/70 border-nude/60 text-bronze hover:text-bronzedark dark:bg-stonepanel dark:border-gold/10 dark:text-gold dark:hover:text-white"
                                     title="Импорт из контактов"
@@ -1424,6 +1943,7 @@
                                                         onDelete={handleDeleteRecord}
                                                         onArchive={handleArchiveRecord}
                                                         onRestore={handleRestoreRecord}
+                                                        onAcknowledge={handleAcknowledgeRecord}
                                                     />
                                                 ))}
                                             </div>
@@ -1444,7 +1964,7 @@
                                     <div key={client.id} className={`glass-panel rounded-2xl p-4 flex justify-between items-center transition-opacity ${client.isInactive ? 'opacity-50' : ''}`}>
                                         <div>
                                             <div className="flex items-center space-x-2">
-                                                <h3 className="font-bold text-stone-800 dark:text-stone-100 text-lg">{client.name}</h3>
+                                                <h3 className="font-bold text-stone-800 dark:text-stone-100 text-lg">{getClientAdminName(client)}</h3>
                                                 {client.isInactive && <span className="text-[10px] uppercase tracking-wider bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900/50">Архив</span>}
                                             </div>
                                             {client.phone && <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">{client.phone}</p>}
@@ -1485,6 +2005,8 @@
                         isOpen={isModalOpen} 
                         initialData={editingRecord}
                         clients={clients}
+                        bookingWindow={bookingWindow}
+                        bookedSlots={bookedSlots}
                         onClose={() => { setIsModalOpen(false); setEditingRecord(null); }} 
                         onSave={handleSaveRecord} 
                     />

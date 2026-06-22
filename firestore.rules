@@ -11,29 +11,73 @@ service cloud.firestore {
       return request.auth.token.email;
     }
 
-    // Пользователь есть в коллекции allowedUsers (ID документа = Gmail целиком)
-    function isAllowedUser() {
+    function isAdmin() {
       return isSignedIn()
         && exists(/databases/$(database)/documents/allowedUsers/$(userEmail()));
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Белый список Gmail — только чтение своей записи, запись только через консоль Firebase
     match /allowedUsers/{email} {
       allow read: if isSignedIn() && userEmail() == email;
       allow write: if false;
     }
 
-    // У каждого пользователя свои записи и клиенты (по Firebase UID)
-    match /users/{userId}/records/{recordId} {
-      allow read, write: if isOwner(userId) && isAllowedUser();
+    match /userProfiles/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
     }
 
+    match /settings/bookingWindow {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /clients/{clientId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.linkedUid == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if isAdmin()
+        || (isSignedIn()
+          && resource.data.linkedUid == null
+          && request.resource.data.linkedUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['linkedUid']));
+      allow delete: if isAdmin();
+    }
+
+    match /phoneLookup/{phone} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /records/{recordId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.bookedByUid == request.auth.uid);
+      allow create: if isAdmin()
+        || (isSignedIn()
+          && request.resource.data.bookedByUid == request.auth.uid
+          && request.resource.data.isSelfBooked == true);
+      allow update, delete: if isAdmin()
+        || (isSignedIn() && resource.data.bookedByUid == request.auth.uid);
+    }
+
+    match /bookedSlots/{slotId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin()
+        || (isSignedIn() && resource.data.bookedByUid == request.auth.uid);
+    }
+
+    // Старые данные — только админ может читать/мигрировать
+    match /users/{userId}/records/{recordId} {
+      allow read, write: if isAdmin();
+    }
     match /users/{userId}/clients/{clientId} {
-      allow read, write: if isOwner(userId) && isAllowedUser();
+      allow read, write: if isAdmin();
     }
   }
 }
