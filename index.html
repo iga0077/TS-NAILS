@@ -463,6 +463,59 @@
             </button>
         );
 
+        const ConfirmDialog = ({ isOpen, title, message, confirmLabel, cancelLabel, onConfirm, onCancel, danger }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-stone-900/50 dark:bg-black/75 backdrop-blur-sm" onClick={onCancel}>
+                    <div className="glass-panel w-full max-w-sm rounded-3xl shadow-2xl modal-enter overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100 mb-2">{title || 'Подтверждение'}</h3>
+                            <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">{message}</p>
+                        </div>
+                        <div className="flex gap-3 p-4 pt-0">
+                            <button
+                                type="button"
+                                onClick={onCancel}
+                                className="flex-1 py-3 rounded-xl border border-nude/60 dark:border-gold/20 text-stone-600 dark:text-stone-300 font-medium hover:bg-white/60 dark:hover:bg-white/5 transition-colors"
+                            >
+                                {cancelLabel || 'Отмена'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onConfirm}
+                                className={`flex-1 py-3 rounded-xl font-semibold text-white transition-colors ${danger ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500' : 'bg-bronze hover:bg-bronzedark dark:bg-gradient-to-r dark:from-gold dark:to-golddark dark:text-stone-900'}`}
+                            >
+                                {confirmLabel || 'Да'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AlertDialog = ({ isOpen, title, message, buttonLabel, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-stone-900/50 dark:bg-black/75 backdrop-blur-sm" onClick={onClose}>
+                    <div className="glass-panel w-full max-w-sm rounded-3xl shadow-2xl modal-enter overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100 mb-2">{title || 'Внимание'}</h3>
+                            <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">{message}</p>
+                        </div>
+                        <div className="p-4 pt-0">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="w-full py-3 rounded-xl bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-semibold"
+                            >
+                                {buttonLabel || 'OK'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const RecordCard = ({ record, isArchiveView, onEdit, onDelete, onArchive, onRestore, onAcknowledge }) => {
             const [showActions, setShowActions] = useState(false);
             const cardRef = React.useRef(null);
@@ -568,7 +621,7 @@
             );
         };
 
-        const EditClientModal = ({ client, isOpen, onClose, onSave, onDelete }) => {
+        const EditClientModal = ({ client, isOpen, onClose, onSave, onDelete, confirm }) => {
             const [formData, setFormData] = useState({ id: '', adminName: '', phone: '', isInactive: false });
 
             useEffect(() => {
@@ -605,7 +658,11 @@
                                 <React.Fragment>
                                     <button
                                         type="button"
-                                        onClick={() => { if (window.confirm('Удалить клиента навсегда?')) onDelete(formData.id); }}
+                                        onClick={async () => {
+                                            if (await confirm('Удалить клиента навсегда?', { title: 'Удаление клиента', confirmLabel: 'Удалить', danger: true })) {
+                                                onDelete(formData.id);
+                                            }
+                                        }}
                                         className="w-full py-3 px-4 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                     >
                                         Удалить клиента
@@ -988,14 +1045,16 @@
             const [firstName, setFirstName] = useState('');
             const [lastName, setLastName] = useState('');
             const [phone, setPhone] = useState('');
+            const [validationError, setValidationError] = useState('');
 
             const handleSubmit = (e) => {
                 e.preventDefault();
                 const normalized = normalizePhone(phone);
                 if (!firstName.trim() || !lastName.trim() || normalized.length < 12) {
-                    alert('Заполните имя, фамилию и номер телефона в формате +7...');
+                    setValidationError('Заполните имя, фамилию и номер телефона в формате +7...');
                     return;
                 }
+                setValidationError('');
                 onSave({ firstName: firstName.trim(), lastName: lastName.trim(), phone: normalized });
             };
 
@@ -1005,6 +1064,7 @@
                         <h1 className="text-xl font-bold text-stone-800 dark:text-stone-100 mb-2">Добро пожаловать!</h1>
                         <p className="text-stone-500 dark:text-stone-400 text-sm mb-6">Заполните данные для записи к мастеру</p>
                         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                        {validationError && <p className="text-red-500 text-sm mb-4">{validationError}</p>}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1">Имя *</label>
@@ -1028,7 +1088,7 @@
             );
         };
 
-        const ClientBookingApp = ({ profile, bookingWindow, bookedSlots, myRecords, onBook, onSignOut, themeMode, effectiveTheme, onThemeToggle }) => {
+        const ClientBookingApp = ({ profile, bookingWindow, bookedSlots, myRecords, onBook, onSignOut, themeMode, effectiveTheme, onThemeToggle, confirm }) => {
             const [selectedDate, setSelectedDate] = useState('');
             const [selectedTime, setSelectedTime] = useState('');
 
@@ -1059,13 +1119,16 @@
                 return (bookingWindow.enabledSlots || []).filter(t => !takenSet.has(slotKey(date, t)));
             };
 
-            const handleBook = () => {
+            const handleBook = async () => {
                 if (!selectedDate || !selectedTime) return;
-                if (window.confirm(`Записаться на ${formatDate(selectedDate)} в ${selectedTime}?`)) {
-                    onBook(selectedDate, selectedTime);
-                    setSelectedDate('');
-                    setSelectedTime('');
-                }
+                const ok = await confirm(
+                    `Записаться на ${formatDate(selectedDate)} в ${selectedTime}?`,
+                    { title: 'Подтверждение записи', confirmLabel: 'Записаться' }
+                );
+                if (!ok) return;
+                onBook(selectedDate, selectedTime);
+                setSelectedDate('');
+                setSelectedTime('');
             };
 
             return (
@@ -1138,7 +1201,7 @@
             );
         };
 
-        const BookingWindowScreen = ({ onBack, onOpen, onCloseWindow, initial }) => {
+        const BookingWindowScreen = ({ onBack, onOpen, onCloseWindow, initial, confirm }) => {
             const [startDate, setStartDate] = useState(initial && initial.startDate ? initial.startDate : todayString);
             const [endDate, setEndDate] = useState(initial && initial.endDate ? initial.endDate : todayString);
             const [excludedDates, setExcludedDates] = useState(initial && initial.excludedDates ? initial.excludedDates : []);
@@ -1220,10 +1283,12 @@
                         {isBookingWindowActive(initial) && (
                             <button
                                 type="button"
-                                onClick={() => {
-                                    if (window.confirm('Закрыть окно записи? Клиенты больше не смогут записываться.')) {
-                                        onCloseWindow({ startDate, endDate, excludedDates, timeSlots, enabledSlots });
-                                    }
+                                onClick={async () => {
+                                    const ok = await confirm(
+                                        'Клиенты больше не смогут записываться.',
+                                        { title: 'Закрыть окно записи?', confirmLabel: 'Закрыть', danger: true }
+                                    );
+                                    if (ok) onCloseWindow({ startDate, endDate, excludedDates, timeSlots, enabledSlots });
                                 }}
                                 className="w-full py-4 rounded-2xl mt-2 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             >
@@ -1348,6 +1413,51 @@
             const [editingClient, setEditingClient] = useState(null);
             const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
             const [isContactImportOpen, setIsContactImportOpen] = useState(false);
+            const [confirmDialog, setConfirmDialog] = useState(null);
+            const [alertDialog, setAlertDialog] = useState(null);
+
+            const confirm = useCallback((message, opts = {}) => new Promise((resolve) => {
+                setConfirmDialog({
+                    message,
+                    title: opts.title,
+                    confirmLabel: opts.confirmLabel,
+                    cancelLabel: opts.cancelLabel,
+                    danger: opts.danger,
+                    onConfirm: () => { setConfirmDialog(null); resolve(true); },
+                    onCancel: () => { setConfirmDialog(null); resolve(false); },
+                });
+            }), []);
+
+            const showAlert = useCallback((message, opts = {}) => new Promise((resolve) => {
+                setAlertDialog({
+                    message,
+                    title: opts.title,
+                    buttonLabel: opts.buttonLabel,
+                    onClose: () => { setAlertDialog(null); resolve(); },
+                });
+            }), []);
+
+            const dialogLayer = (
+                <React.Fragment>
+                    <ConfirmDialog
+                        isOpen={!!confirmDialog}
+                        title={confirmDialog ? confirmDialog.title : undefined}
+                        message={confirmDialog ? confirmDialog.message : undefined}
+                        confirmLabel={confirmDialog ? confirmDialog.confirmLabel : undefined}
+                        cancelLabel={confirmDialog ? confirmDialog.cancelLabel : undefined}
+                        danger={confirmDialog ? confirmDialog.danger : undefined}
+                        onConfirm={confirmDialog ? confirmDialog.onConfirm : () => {}}
+                        onCancel={confirmDialog ? confirmDialog.onCancel : () => {}}
+                    />
+                    <AlertDialog
+                        isOpen={!!alertDialog}
+                        title={alertDialog ? alertDialog.title : undefined}
+                        message={alertDialog ? alertDialog.message : undefined}
+                        buttonLabel={alertDialog ? alertDialog.buttonLabel : undefined}
+                        onClose={alertDialog ? alertDialog.onClose : () => {}}
+                    />
+                </React.Fragment>
+            );
 
             const [themeMode, setThemeMode] = useState(() => {
                 const saved = localStorage.getItem('manicureTheme');
@@ -1493,13 +1603,13 @@
             const handleClientBook = async (date, time) => {
                 if (!user || !userProfile) return;
                 if (bookedSlots.some(s => s.date === date && s.time === time)) {
-                    alert('Это время уже занято. Выберите другое.');
+                    await showAlert('Это время уже занято. Выберите другое.');
                     return;
                 }
                 const norm = normalizePhone(userProfile.phone);
                 const client = await ensureClientInDb(norm, userProfile.firstName + ' ' + userProfile.lastName, user.uid);
                 if (!client) {
-                    alert('Не удалось создать запись. Попробуйте позже.');
+                    await showAlert('Не удалось создать запись. Попробуйте позже.');
                     return;
                 }
                 const id = Date.now();
@@ -1568,7 +1678,8 @@
 
             const handleDeleteRecord = async (id) => {
                 if (!user || !isAdmin) return;
-                if (!window.confirm('Удалить запись?')) return;
+                const ok = await confirm('Удалить запись?', { title: 'Удаление записи', confirmLabel: 'Удалить', danger: true });
+                if (!ok) return;
                 const rec = records.find(r => r.id === id);
                 await recordsRef().doc(String(id)).delete();
                 if (rec && rec.date && rec.time && !rec.customTime) await removeBookedSlot(rec.date, rec.time);
@@ -1747,32 +1858,41 @@
 
             if (!isAdmin) {
                 return (
-                    <ClientBookingApp
-                        profile={userProfile}
-                        bookingWindow={bookingWindow}
-                        bookedSlots={bookedSlots}
-                        myRecords={myRecords}
-                        onBook={handleClientBook}
-                        onSignOut={handleSignOut}
-                        themeMode={themeMode}
-                        effectiveTheme={effectiveTheme}
-                        onThemeToggle={handleThemeToggle}
-                    />
+                    <React.Fragment>
+                        <ClientBookingApp
+                            profile={userProfile}
+                            bookingWindow={bookingWindow}
+                            bookedSlots={bookedSlots}
+                            myRecords={myRecords}
+                            onBook={handleClientBook}
+                            onSignOut={handleSignOut}
+                            themeMode={themeMode}
+                            effectiveTheme={effectiveTheme}
+                            onThemeToggle={handleThemeToggle}
+                            confirm={confirm}
+                        />
+                        {dialogLayer}
+                    </React.Fragment>
                 );
             }
 
             if (adminView === 'bookingWindow') {
                 return (
-                    <BookingWindowScreen
-                        onBack={() => setAdminView('main')}
-                        onOpen={handleOpenBookingWindow}
-                        onCloseWindow={handleCloseBookingWindow}
-                        initial={bookingWindow}
-                    />
+                    <React.Fragment>
+                        <BookingWindowScreen
+                            onBack={() => setAdminView('main')}
+                            onOpen={handleOpenBookingWindow}
+                            onCloseWindow={handleCloseBookingWindow}
+                            initial={bookingWindow}
+                            confirm={confirm}
+                        />
+                        {dialogLayer}
+                    </React.Fragment>
                 );
             }
 
             return (
+                <React.Fragment>
                 <div className="max-w-md mx-auto min-h-screen flex flex-col relative pt-8 px-4">
                     {dataLoading && (
                         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full glass-panel text-xs text-stone-500 dark:text-stone-400 border border-nude/40 dark:border-gold/10">
@@ -2017,6 +2137,7 @@
                         onClose={() => { setIsClientModalOpen(false); setEditingClient(null); }}
                         onSave={handleSaveClient}
                         onDelete={handleDeleteClient}
+                        confirm={confirm}
                     />
 
                     <ContactImportModal
@@ -2065,6 +2186,8 @@
                     </nav>
 
                 </div>
+                {dialogLayer}
+            </React.Fragment>
             );
         };
 
