@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TS Nails">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" href="icons/icon-192.png" type="image/png">
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -426,7 +427,7 @@
                             <p className="mt-3 text-stone-700 dark:text-stone-200 text-sm whitespace-pre-wrap">{record.noteText}</p>
                         </div>
                     ) : (
-                        <>
+                        <React.Fragment>
                             <div className="flex justify-between items-start ml-2">
                                 <div className="flex-1 min-w-0 pr-2">
                                     <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100">{record.clientName}</h3>
@@ -452,7 +453,7 @@
                                     {record.price ? `${record.price} ₸` : ''}
                                 </div>
                             </div>
-                        </>
+                        </React.Fragment>
                     )}
 
                     {showActions && (
@@ -514,7 +515,7 @@
                                 <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="glass-input w-full px-4 py-3 rounded-xl" />
                             </div>
                             {!isNew && (
-                                <>
+                                <React.Fragment>
                                     <button
                                         type="button"
                                         onClick={() => { if (window.confirm('Удалить клиента навсегда?')) onDelete(formData.id); }}
@@ -526,7 +527,7 @@
                                         <input type="checkbox" id="inactive" checked={formData.isInactive} onChange={e => setFormData({...formData, isInactive: e.target.checked})} className="mr-3 w-5 h-5 rounded border-stone-300 dark:border-stone-600 bg-white dark:bg-stonebg accent-bronze dark:accent-gold" />
                                         <label htmlFor="inactive" className="text-stone-700 dark:text-stone-300 text-sm">Неактуальный клиент (в архив)</label>
                                     </div>
-                                </>
+                                </React.Fragment>
                             )}
                             <div className="pt-4">
                                 <button type="submit" className="w-full bg-bronze dark:bg-gradient-to-r dark:from-gold dark:to-golddark text-white dark:text-stone-900 font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-bronze/20 dark:shadow-gold/10 transform transition active:scale-95">
@@ -642,7 +643,7 @@
                             )}
 
                             {entryType === 'note' ? (
-                                <>
+                                <React.Fragment>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Дата *</label>
@@ -657,9 +658,9 @@
                                         <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Текст заметки *</label>
                                         <textarea required name="noteText" value={formData.noteText || ''} onChange={handleChange} rows={4} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500 resize-none" placeholder="Напоминание..." />
                                     </div>
-                                </>
+                                </React.Fragment>
                             ) : (
-                                <>
+                                <React.Fragment>
                             <div className="relative">
                                 <label className="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-1 ml-1">Имя клиента *</label>
                                 <input 
@@ -731,7 +732,7 @@
                                     <input type="tel" name="phone" value={formData.phone || ''} onChange={handleChange} className="glass-input w-full px-4 py-3 rounded-xl placeholder-stone-400 dark:placeholder-stone-500" placeholder="+7..." />
                                 </div>
                             </div>
-                                </>
+                                </React.Fragment>
                             )}
 
                             <div className="pt-4">
