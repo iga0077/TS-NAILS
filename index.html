@@ -334,6 +334,15 @@
 
         const getClientAdminName = (client) => client.adminName || client.name || '';
 
+        const getRecordClientName = (record, clients) => {
+            if (record.clientName && record.clientName.trim()) return record.clientName;
+            if (record.clientId && clients && clients.length) {
+                const c = clients.find(x => String(x.id) === String(record.clientId));
+                if (c) return getClientAdminName(c);
+            }
+            return 'Клиент';
+        };
+
         const getGreeting = () => {
             const h = new Date().getHours();
             if (h >= 5 && h < 12) return 'Доброе утро';
@@ -516,11 +525,12 @@
             );
         };
 
-        const RecordCard = ({ record, isArchiveView, onEdit, onDelete, onArchive, onRestore, onAcknowledge }) => {
+        const RecordCard = ({ record, clients, isArchiveView, onEdit, onDelete, onArchive, onRestore, onAcknowledge }) => {
             const [showActions, setShowActions] = useState(false);
             const cardRef = React.useRef(null);
             const note = isNote(record);
             const isNewSelf = record.isSelfBooked && record.isNewFromClient;
+            const clientName = getRecordClientName(record, clients);
 
             useClickOutside(cardRef, showActions, () => setShowActions(false));
 
@@ -566,7 +576,7 @@
                                         {record.isSelfBooked && (
                                             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-bold shrink-0" title="Запись клиента">К</span>
                                         )}
-                                        <span className="truncate">{record.clientName}</span>
+                                        <span className="truncate">{clientName}</span>
                                     </h3>
                                     {record.phone && (
                                         <div className="flex items-center text-stone-500 dark:text-stone-400 text-sm mt-1">
@@ -1791,7 +1801,7 @@
                 if (scheduleSearch) {
                     const q = scheduleSearch.toLowerCase();
                     filtered = filtered.filter(r => 
-                        (r.clientName && r.clientName.toLowerCase().includes(q)) ||
+                        getRecordClientName(r, clients).toLowerCase().includes(q) ||
                         (r.service && r.service.toLowerCase().includes(q)) ||
                         (r.noteText && r.noteText.toLowerCase().includes(q))
                     );
@@ -1812,7 +1822,7 @@
                     acc[record.date].push(record);
                     return acc;
                 }, {});
-            }, [records, scheduleMode, scheduleSearch, selectedDate]);
+            }, [records, scheduleMode, scheduleSearch, selectedDate, clients]);
 
             // Обработка базы клиентов
             const clientsWithStats = useMemo(() => {
@@ -2074,6 +2084,7 @@
                                                     <RecordCard 
                                                         key={record.id} 
                                                         record={record}
+                                                        clients={clients}
                                                         isArchiveView={scheduleMode === 'archive'}
                                                         onEdit={() => { setEditingRecord(record); setIsModalOpen(true); }} 
                                                         onDelete={handleDeleteRecord}
