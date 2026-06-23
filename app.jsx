@@ -1549,6 +1549,20 @@
             }, [user, isAdmin, migrateSharedData]);
 
             useEffect(() => {
+                if (!isAdmin || !clients.length) return;
+                let cancelled = false;
+                (async () => {
+                    for (const c of clients) {
+                        if (cancelled || !c.phone) continue;
+                        const ref = phoneLookupRef(c.phone);
+                        const snap = await ref.get();
+                        if (!snap.exists) await ref.set({ clientId: c.id });
+                    }
+                })().catch(console.error);
+                return () => { cancelled = true; };
+            }, [isAdmin, clients]);
+
+            useEffect(() => {
                 if (!isAdmin || !bookingWindow || !bookingWindow.isOpen) return;
                 if (bookingWindow.endDate && bookingWindow.endDate < todayString) {
                     bookingWindowRef().update({ isOpen: false, closedAt: Date.now(), closedReason: 'expired' }).catch(console.error);
@@ -1568,15 +1582,15 @@
             const ensureClientInDb = async (phone, adminName, linkedUid) => {
                 const norm = normalizePhone(phone);
                 const lookup = await phoneLookupRef(phone).get();
+
                 if (lookup.exists) {
                     const clientId = lookup.data().clientId;
-                    const clientRef = clientsRef().doc(String(clientId));
-                    const clientSnap = await clientRef.get();
-                    if (clientSnap.exists && linkedUid && !clientSnap.data().linkedUid) {
-                        await clientRef.update({ linkedUid });
+                    if (linkedUid) {
+                        await clientsRef().doc(String(clientId)).update({ linkedUid }).catch(() => {});
                     }
-                    return clientSnap.exists ? clientSnap.data() : null;
+                    return { id: clientId, phone: norm };
                 }
+
                 const id = Date.now();
                 const data = { id, adminName, phone: norm, isInactive: false, linkedUid: linkedUid || null };
                 await clientsRef().doc(String(id)).set(data);
@@ -1587,13 +1601,15 @@
             const handleSaveProfile = async (data) => {
                 if (!user) return;
                 setProfileSaving(true);
+                setAuthError('');
                 try {
                     const profile = { ...data, email: user.email, uid: user.uid };
                     await userProfileRef(user.uid).set(profile);
+                    setUserProfile(profile);
                     const adminName = data.firstName + ' ' + data.lastName;
                     await ensureClientInDb(data.phone, adminName, user.uid);
-                    setUserProfile(profile);
                 } catch (e) {
+                    console.error(e);
                     setAuthError('Не удалось сохранить профиль.');
                 } finally {
                     setProfileSaving(false);
